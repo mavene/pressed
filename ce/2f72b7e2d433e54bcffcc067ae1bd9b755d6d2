@@ -1,0 +1,83 @@
+Pressed/App/AppRouter.swift
+  s_d276e446bab3e2::t_b5138717e10fbb 1-61
+Pressed/App/BackgroundRefresh.swift
+  s_f1926b1fd50449::t_fdc889059fbf5c 1-30
+Pressed/App/SceneDelegate.swift
+  s_f1926b1fd50449::t_e4fae7e0d56761 1-46
+Pressed/Core/CardStore.swift
+  s_d276e446bab3e2::t_9d3a102138cc11 1-227
+Pressed/Core/MetadataService.swift
+  s_d276e446bab3e2::t_cdd45b9d5a5f36 1-138
+Pressed/Core/NudgeScheduler.swift
+  s_d276e446bab3e2::t_2b2645cbfc9dc4 1-104
+Pressed/Core/Persistence.swift
+  s_d276e446bab3e2::t_82ed0b2f452d84 1-129
+Pressed/UI/BookmarkView.swift
+  s_d276e446bab3e2::t_f9f55faf6a5aa0 1-312
+Pressed/UI/CardBackdrops.swift
+  s_d276e446bab3e2::t_105eedcc56ebe9 1-400
+Pressed/UI/CardBreakup.swift
+  s_d276e446bab3e2::t_92ef81f5d300a5 1-292
+Pressed/UI/CardContentView.swift
+  s_d276e446bab3e2::t_f0aa2a1b60c299 1-151
+Pressed/UI/Components.swift
+  s_d276e446bab3e2::t_ce80d9c15d13de 1-153
+Pressed/UI/FarewellSupport.swift
+  s_d276e446bab3e2::t_fa0681594048aa 1-187
+Pressed/UI/FarewellViewController.swift
+  s_d276e446bab3e2::t_32d0fec71f8de4 1-138
+Pressed/UI/FireplaceView.swift
+  s_d276e446bab3e2::t_fc68e867b4567a 1-548
+Pressed/UI/FlickGame.swift
+  s_d276e446bab3e2::t_c69b94067b5d93 1-465
+Pressed/UI/MainTabBarController.swift
+  s_f1926b1fd50449::t_92e19d088ce0c9 1-64
+Pressed/UI/PaperCardView.swift
+  s_d276e446bab3e2::t_f537af14544aee 1-153
+Pressed/UI/PaperRollView.swift
+  s_d276e446bab3e2::t_d845544c04175c 1-108
+Pressed/UI/PileViewController.swift
+  s_d276e446bab3e2::t_edc275d17cebf3 1-351
+Pressed/UI/ReaderCoordinator.swift
+  s_d276e446bab3e2::t_7e64142dcb7f95 1-55
+Pressed/UI/SettingsViewController.swift
+  s_f1926b1fd50449::t_b8f0366115541d 1-298
+Pressed/UI/SoloBinView.swift
+  s_d276e446bab3e2::t_0054536e951cad 1-326
+Pressed/UI/Theme.swift
+  s_d276e446bab3e2::t_0f311ed41d05a6 1-111
+PressedShare/ShareViewController.swift
+  s_d276e446bab3e2::t_52059945b7639e 1-134
+PressedTests/PressedTests.swift
+  s_d276e446bab3e2::t_51592043c8cc14 1-290
+Shared/AppGroup.swift
+  s_d276e446bab3e2::t_c2ffff0e96ba17 1-71
+Shared/Models.swift
+  s_d276e446bab3e2::t_1b8b8a3e4358c0 1-74
+Shared/Rules.swift
+  s_d276e446bab3e2::t_17e37c15c4e576 1-119
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.6.15",
+  "base_commit_sha": "ce2f72b7e2d433e54bcffcc067ae1bd9b755d6d2",
+  "prompts": {},
+  "sessions": {
+    "s_d276e446bab3e2": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "33cb4b0b-8af7-42dc-9fe6-e82f90732352",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Dian Maisara <dian.maisara@foodpanda.com>"
+    },
+    "s_f1926b1fd50449": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "f7c67e4c-d234-4c43-afc9-16467e2153b9",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Dian Maisara <dian.maisara@foodpanda.com>"
+    }
+  }
+}
