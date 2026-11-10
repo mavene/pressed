@@ -1,0 +1,38 @@
+PressedWidget/PressedWidget.entitlements
+  s_0fc31e3717cde8::t_cc06dd29460425 1-10
+Pressed/UI/WaxSealView.swift
+  s_70dd2a79f1ab35::t_4c3ac615280b88 11-12,14-16
+project.yml
+  s_0fc31e3717cde8::t_cc06dd29460425 33,96-119
+  s_0fc31e3717cde8::t_da625aec9f26bb 120
+PressedWidget/PressedWidget.swift
+  s_0fc31e3717cde8::t_cc06dd29460425 1-248
+PressedWidget/Info.plist
+  s_0fc31e3717cde8::t_cc06dd29460425 1-31
+Pressed/Core/CardStore.swift
+  s_0fc31e3717cde8::t_cc06dd29460425 2,198
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "92861c0367e14d5625e2f0fbf605802071a29c9d",
+  "prompts": {},
+  "sessions": {
+    "s_0fc31e3717cde8": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "446793a4-bf24-4cf7-beda-0998a1c839f4",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Dian Maisara <dian.maisara@foodpanda.com>"
+    },
+    "s_70dd2a79f1ab35": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "d3ae4a3f-d671-4662-96f5-fdcd0c649b85",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Dian Maisara <dian.maisara@foodpanda.com>"
+    }
+  }
+}
