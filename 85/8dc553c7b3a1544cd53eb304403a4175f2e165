@@ -1,0 +1,57 @@
+Pressed/UI/SoloBinView.swift
+  s_e6219870c6e1c1::t_bc66b1ef5e7728 202-204,254,263,322
+PressedWidget/PressedWidget.swift
+  s_e6219870c6e1c1::t_94ef63de77dfcd 120-122,150-189,270-274
+  s_e6219870c6e1c1::t_0c81680f600e60 244-248
+  s_e6219870c6e1c1::t_13cd15596060a6 198
+Pressed/App/AppRouter.swift
+  s_e6219870c6e1c1::t_13cd15596060a6 3,26-31
+Pressed/Core/MetadataService.swift
+  s_e6219870c6e1c1::t_a4892b9e8c2c89 21-22,24,29-36,40
+Pressed/Core/Persistence.swift
+  s_e6219870c6e1c1::t_a4892b9e8c2c89 22-24,51-52,126-129
+Shared/Rules.swift
+  s_e6219870c6e1c1::t_ec56e33247244c 24-35
+  s_e6219870c6e1c1::t_a4892b9e8c2c89 36-51
+Pressed/UI/PressViewController.swift
+  s_e6219870c6e1c1::t_a4892b9e8c2c89 17-18,27,92-114,149,176-198,206,244-248
+  s_e6219870c6e1c1::t_b5336efe1a3509 174-175
+Shared/Models.swift
+  s_e6219870c6e1c1::t_a4892b9e8c2c89 46-47,57,59-64
+Pressed/UI/FireplaceView.swift
+  s_e6219870c6e1c1::t_bc66b1ef5e7728 325,327-328,378,387,451
+Pressed/UI/FlickGame.swift
+  s_e6219870c6e1c1::t_bc66b1ef5e7728 131-136,139-150,163-165,169,171,175-185,205,211,237-241
+Pressed/UI/WaxSealView.swift
+  s_e6219870c6e1c1::t_0c81680f600e60 16
+  s_e6219870c6e1c1::t_677deea14b56de 112,119-138
+  s_e6219870c6e1c1::t_e9f1735f220f35 9-12,15,18-21,78,91-101,107,139-171,173,179-182,184-190
+  s_e6219870c6e1c1::t_2c3f86a8ea5132 172,174-178,183
+  s_e6219870c6e1c1::t_2c9bd9ac67d8e8 191
+PressedTests/PressedTests.swift
+  s_e6219870c6e1c1::t_659921ff50c600 361-378
+  s_e6219870c6e1c1::t_12ff2591166048 298,300,305-306
+  s_e6219870c6e1c1::t_ec56e33247244c 291-297,299,301-304,307-308
+  s_e6219870c6e1c1::t_b5336efe1a3509 309-360
+Pressed/Core/CardStore.swift
+  s_e6219870c6e1c1::t_61d56791daa3ea 203-205,210-211
+  s_e6219870c6e1c1::t_ec56e33247244c 86
+  s_e6219870c6e1c1::t_13cd15596060a6 206
+  s_e6219870c6e1c1::t_a4892b9e8c2c89 108-137,152,161-164
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "858dc553c7b3a1544cd53eb304403a4175f2e165",
+  "prompts": {},
+  "sessions": {
+    "s_e6219870c6e1c1": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "3aae977a-d62d-468d-a0b6-06e170d6933b",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Dian Maisara <dian.maisara@foodpanda.com>"
+    }
+  }
+}
