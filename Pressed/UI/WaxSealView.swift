@@ -8,24 +8,12 @@ struct SealStyle {
     let dashedRing: Bool
     let drips: Bool
 
+    /// Every finish uses the same red wax for now, so seals look consistent. The finish still decides the shape:
+    /// close calls drip and rescued cards get a dashed ring. Per-finish colours can come back once they pay off.
     static func style(for finish: CardFinish) -> SealStyle {
-        switch finish {
-        case .none:
-            return SealStyle(fill: UIColor(hex: 0x9E2F24), ring: UIColor(hex: 0x6E1E16),
-                             letter: UIColor(hex: 0xF1D3C8), dashedRing: false, drips: false)
-        case .fresh:
-            return SealStyle(fill: UIColor(hex: 0xB8862B), ring: UIColor(hex: 0x8A6418),
-                             letter: UIColor(hex: 0xFFF3D6), dashedRing: false, drips: false)
-        case .closeCall:
-            return SealStyle(fill: UIColor(hex: 0x9E2F24), ring: UIColor(hex: 0x6E1E16),
-                             letter: UIColor(hex: 0xF1D3C8), dashedRing: false, drips: true)
-        case .longRead:
-            return SealStyle(fill: UIColor(hex: 0x6B4A2B), ring: UIColor(hex: 0x45301B),
-                             letter: UIColor(hex: 0xE9D7B8), dashedRing: false, drips: false)
-        case .rescued:
-            return SealStyle(fill: UIColor(hex: 0x2F6F6A), ring: UIColor(hex: 0x1D4744),
-                             letter: UIColor(hex: 0xD6EFEA), dashedRing: true, drips: false)
-        }
+        SealStyle(fill: UIColor(hex: 0x9E2F24), ring: UIColor(hex: 0x6E1E16),
+                  letter: UIColor(hex: 0xF1D3C8),
+                  dashedRing: finish == .rescued, drips: finish == .closeCall)
     }
 }
 

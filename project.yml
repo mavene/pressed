@@ -30,6 +30,7 @@ targets:
       - path: Shared
     dependencies:
       - target: PressedShare
+      - target: PressedWidget
     entitlements:
       path: Pressed/Pressed.entitlements
       properties:
@@ -91,6 +92,31 @@ targets:
     settings:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(BUNDLE_ID_BASE).share
+
+  PressedWidget:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: PressedWidget
+      - path: Shared/AppGroup.swift
+      - path: Shared/Models.swift
+      - path: Shared/Rules.swift
+      - path: Pressed/Core/Persistence.swift
+    entitlements:
+      path: PressedWidget/PressedWidget.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - $(APP_GROUP_ID)
+    info:
+      path: PressedWidget/Info.plist
+      properties:
+        CFBundleDisplayName: Pressed
+        PressedAppGroup: $(APP_GROUP_ID)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.widgetkit-extension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(BUNDLE_ID_BASE).widget
 
   PressedTests:
     type: bundle.unit-test

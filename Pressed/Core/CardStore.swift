@@ -1,4 +1,5 @@
 import CoreData
+import WidgetKit
 
 /// All card reads and writes on the main-queue context. Every save posts `.cardsDidChange`.
 @MainActor
@@ -194,6 +195,7 @@ final class CardStore {
             assertionFailure("Saving cards failed: \(error)")
         }
         NotificationCenter.default.post(name: .cardsDidChange, object: nil)
+        WidgetCenter.shared.reloadAllTimelines()
     }
 }
 
