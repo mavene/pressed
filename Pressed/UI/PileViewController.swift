@@ -260,7 +260,7 @@ final class PileViewController: UIViewController, UICollectionViewDelegate {
         config.text = "Nothing waiting"
         config.textProperties.font = Theme.serif(22, .semibold, style: .title2)
         config.textProperties.color = Theme.ink
-        config.secondaryText = "Go live a little. When you find something to read later, share it to Pressed."
+        config.secondaryText = "When you find something to read later, share it to Pressed."
         config.secondaryTextProperties.color = Theme.inkQuiet
 
         var button = UIButton.Configuration.filled()

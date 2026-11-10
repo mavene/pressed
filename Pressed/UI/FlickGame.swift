@@ -9,7 +9,9 @@ enum FlickMath {
     }
 
     /// Slower than this and a release is just letting go, not a throw.
-    static let minimumThrowSpeed: CGFloat = 220
+    static func minimumThrowSpeed(_ style: FlickFlight.Style = .lob) -> CGFloat {
+        style == .lob ? 400 : 220
+    }
 }
 
 /// Tracks a finger from touch-down and measures its speed over the last ~100ms.
@@ -125,27 +127,34 @@ final class FlickFlight {
         case soft, hard, wide
     }
 
+    /// `classic` is the original flat, quick flick (the fireplace). `lob` is the heavier, high 3D arc (the bin).
+    enum Style {
+        case classic, lob
+    }
+
     var onHit: (() -> Void)?
     var onMiss: ((Miss, CGPoint) -> Void)?
 
-    /// Seconds of swipe speed the object carries: a 1200 pt/s swipe travels about 170 points.
+    /// Seconds of swipe speed the object carries: a 1200 pt/s swipe travels about 140 points.
     /// It takes real force to send paper across the room, so this is lower than it feels like it should be.
-    static let reach: CGFloat = 0.14
+    static func reach(_ style: Style) -> CGFloat { style == .lob ? 0.115 : 0.14 }
     /// Above this swipe speed extra force counts for only half as much, so a hard flick runs long by a little
     /// instead of sailing off the screen. That keeps a big, natural throw usable.
-    private static let softCap: CGFloat = 2200
-    private static let gravity: CGFloat = 2600
+    private static func softCap(_ style: Style) -> CGFloat { style == .lob ? 3400 : 2200 }
+    private static func gravity(_ style: Style) -> CGFloat { style == .lob ? 2100 : 2600 }
 
     /// How far a swipe of this speed carries the paper, before any per-throw variation.
-    static func distance(forSpeed speed: CGFloat) -> CGFloat {
-        let effective = speed <= softCap ? speed : softCap + (speed - softCap) * 0.5
-        return effective * reach
+    static func distance(forSpeed speed: CGFloat, style: Style = .lob) -> CGFloat {
+        let cap = softCap(style)
+        let effective = speed <= cap ? speed : cap + (speed - cap) * 0.5
+        return effective * reach(style)
     }
 
     /// The swipe speed that carries the paper exactly `distance` points. Used for the scripted "sweep it in".
-    static func speed(forDistance distance: CGFloat) -> CGFloat {
-        let linear = distance / reach
-        return linear <= softCap ? linear : softCap + (linear - softCap) * 2
+    static func speed(forDistance distance: CGFloat, style: Style = .lob) -> CGFloat {
+        let cap = softCap(style)
+        let linear = distance / reach(style)
+        return linear <= cap ? linear : cap + (linear - cap) * 2
     }
 
     private let view: UIView
@@ -162,13 +171,18 @@ final class FlickFlight {
     private let endScale: CGFloat
     /// Sideways bow of the flight in points, positive to the right of the throw direction.
     private let bow: CGFloat
+    /// How far the paper tips over (about its horizontal axis) and twists mid-flight; both are flat again on landing.
+    private let pitch: CGFloat
+    private let yaw: CGFloat
+    private let style: Style
     private let perpendicular: CGPoint
     private var link: CADisplayLink?
     private var begin: CFTimeInterval = 0
 
     /// `scripted` flights (the "sweep it in" helper) are exact: no per-throw variation.
     init(view: UIView, velocity: CGPoint, target: CGPoint, hitRadius: CGFloat, assistRadius: CGFloat,
-         startAngle: CGFloat, startScale: CGFloat, endScale: CGFloat, scripted: Bool = false) {
+         startAngle: CGFloat, startScale: CGFloat, endScale: CGFloat, style: Style = .lob, scripted: Bool = false) {
+        self.style = style
         let start = view.center
         let speed = max(1, hypot(velocity.x, velocity.y))
         let direction = CGPoint(x: velocity.x / speed, y: velocity.y / speed)
@@ -178,7 +192,7 @@ final class FlickFlight {
         // and a different bow to the arc. Small enough that a good aim still lands, big enough to feel alive.
         let power: CGFloat = scripted ? 1 : .random(in: 0.9...1.1)
         let draught: CGFloat = scripted ? 0 : .random(in: -0.06...0.06)
-        let distance = Self.distance(forSpeed: speed) * power
+        let distance = Self.distance(forSpeed: speed, style: style) * power
         var landing = CGPoint(x: start.x + direction.x * distance + perpendicular.x * distance * draught,
                               y: start.y + direction.y * distance + perpendicular.y * distance * draught)
         self.perpendicular = perpendicular
@@ -202,13 +216,24 @@ final class FlickFlight {
             miss = .wide
         }
 
-        let flightTime = min(1.0, 0.4 + Double(distance) / 1500) * (scripted ? 1 : Double.random(in: 0.93...1.12))
+        // A real lob: the higher it goes, the longer it hangs, so time of flight comes from gravity.
+        let lob: CGFloat
+        let flightTime: Double
+        if style == .lob {
+            lob = min(200, max(60, distance * 0.42)) * (scripted ? 1 : .random(in: 0.85...1.2))
+            flightTime = min(1.1, max(0.5, sqrt(Double(8 * lob / Self.gravity(.lob))))) * (scripted ? 1 : Double.random(in: 0.95...1.08))
+        } else {
+            flightTime = min(1.0, 0.4 + Double(distance) / 1500) * (scripted ? 1 : Double.random(in: 0.93...1.12))
+            lob = min(150, Self.gravity(.classic) * CGFloat(flightTime * flightTime) / 8) * (scripted ? 1 : .random(in: 0.85...1.2))
+        }
         self.view = view
         self.start = start
         self.landing = landing
         self.hits = hits
         self.duration = flightTime
-        self.apex = min(150, Self.gravity * CGFloat(flightTime * flightTime) / 8) * (scripted ? 1 : .random(in: 0.85...1.2))
+        self.apex = lob
+        self.pitch = style == .classic ? 0 : (scripted ? 0.3 : .random(in: 0.15...0.35) * (Bool.random() ? 1 : -1))
+        self.yaw = style == .classic ? 0 : (scripted ? 0.08 : .random(in: -0.12...0.12))
         self.rise = start.y - target.y
         self.startAngle = startAngle
         self.spin = direction.x * 5
@@ -234,22 +259,49 @@ final class FlickFlight {
             return
         }
         let t = CGFloat(min(1, (CACurrentMediaTime() - begin) / duration))
-        // Paper is light: it loses speed in the air, so it travels fast at first and drifts in at the end.
-        let travelled = 1 - pow(1 - t, 1.25)
+        if style == .classic {
+            // The original flick: paper is light, so it travels fast at first and drifts in at the end.
+            let travelled = 1 - pow(1 - t, 1.25)
+            let sideways = bow * sin(.pi * t)
+            let ground = CGPoint(x: start.x + (landing.x - start.x) * travelled + perpendicular.x * sideways,
+                                 y: start.y + (landing.y - start.y) * travelled + perpendicular.y * sideways)
+            let height = 4 * apex * t * (1 - t)
+            view.center = CGPoint(x: ground.x, y: ground.y - height)
+            let depth = rise > 1 ? max(0, min(1.2, (start.y - ground.y) / rise)) : t
+            var scale = startScale + (endScale - startScale) * min(1, depth)
+            scale *= 1 + 0.12 * height / max(apex, 1)
+            view.transform = CGAffineTransform(rotationAngle: startAngle + spin * t).scaledBy(x: scale, y: scale)
+            if t >= 1 {
+                stop()
+                if hits { onHit?() } else { onMiss?(miss, landing) }
+            }
+            return
+        }
+
+        // Constant horizontal speed plus a parabolic height is what makes a throw read as a true arc.
         let sideways = bow * sin(.pi * t)
-        let ground = CGPoint(x: start.x + (landing.x - start.x) * travelled + perpendicular.x * sideways,
-                             y: start.y + (landing.y - start.y) * travelled + perpendicular.y * sideways)
+        let ground = CGPoint(x: start.x + (landing.x - start.x) * t + perpendicular.x * sideways,
+                             y: start.y + (landing.y - start.y) * t + perpendicular.y * sideways)
         let height = 4 * apex * t * (1 - t)
         view.center = CGPoint(x: ground.x, y: ground.y - height)
 
-        // Farther up the screen means farther away; at the top of the arc it is also nearest the camera.
+        // Farther up the screen means farther away; the paper also swells as it rises toward the camera.
         let depth = rise > 1 ? max(0, min(1.2, (start.y - ground.y) / rise)) : t
         var scale = startScale + (endScale - startScale) * min(1, depth)
-        scale *= 1 + 0.12 * height / max(apex, 1)
-        view.transform = CGAffineTransform(rotationAngle: startAngle + spin * t).scaledBy(x: scale, y: scale)
+        scale *= 1 + 0.15 * height / max(apex, 1)
+
+        let swing = sin(.pi * t)
+        var transform = CATransform3DIdentity
+        transform.m34 = -1 / 650
+        transform = CATransform3DRotate(transform, startAngle + spin * t, 0, 0, 1)
+        transform = CATransform3DRotate(transform, pitch * swing, 1, 0, 0)
+        transform = CATransform3DRotate(transform, yaw * swing, 0, 1, 0)
+        transform = CATransform3DScale(transform, scale, scale, 1)
+        view.layer.transform = transform
 
         if t >= 1 {
             stop()
+            view.transform = CGAffineTransform(rotationAngle: startAngle + spin).scaledBy(x: scale, y: scale)
             if hits { onHit?() } else { onMiss?(miss, landing) }
         }
     }

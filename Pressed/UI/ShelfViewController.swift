@@ -286,7 +286,7 @@ final class BookmarkCell: UICollectionViewCell {
         hook.layer.borderWidth = 2
         hook.layer.borderColor = Theme.brass.cgColor
         hook.translatesAutoresizingMaskIntoConstraints = false
-        string.backgroundColor = UIColor(hex: 0x8C7A60)
+        string.backgroundColor = UIColor(hex: 0x9E2F24)
         string.translatesAutoresizingMaskIntoConstraints = false
         sway.addSubview(hook)
         sway.addSubview(string)
@@ -306,7 +306,7 @@ final class BookmarkCell: UICollectionViewCell {
 
             string.topAnchor.constraint(equalTo: hook.bottomAnchor, constant: -1),
             string.centerXAnchor.constraint(equalTo: sway.centerXAnchor),
-            string.widthAnchor.constraint(equalToConstant: 1.2),
+            string.widthAnchor.constraint(equalToConstant: 1.6),
             stringHeight,
 
             bookmark.topAnchor.constraint(equalTo: string.bottomAnchor),

@@ -314,7 +314,7 @@ final class FireplaceView: FarewellSceneView {
 
     private func released(_ paper: UIView, at point: CGPoint, velocity: CGPoint) {
         recognizer?.candidates.removeAll { $0 === paper }
-        guard FlickMath.speed(velocity) > FlickMath.minimumThrowSpeed else {
+        guard FlickMath.speed(velocity) > FlickMath.minimumThrowSpeed(.classic) else {
             returnHome(paper)
             return
         }
@@ -325,7 +325,7 @@ final class FireplaceView: FarewellSceneView {
     private func launch(_ paper: UIView, velocity: CGPoint, scripted: Bool = false) {
         let angle = homes[ObjectIdentifier(paper)]?.angle ?? 0
         let flight = FlickFlight(view: paper, velocity: velocity, target: mouth, hitRadius: 66, assistRadius: 140,
-                                 startAngle: angle, startScale: 1.08, endScale: 0.4, scripted: scripted)
+                                 startAngle: angle, startScale: 1.08, endScale: 0.4, style: .classic, scripted: scripted)
         flight.onHit = { [weak self] in self?.burnUp(paper) }
         flight.onMiss = { [weak self] kind, point in self?.missed(paper, kind, at: point) }
         flight.launch()
@@ -384,7 +384,7 @@ final class FireplaceView: FarewellSceneView {
     private func sweepVelocity(from point: CGPoint) -> CGPoint {
         let dx = mouth.x - point.x, dy = mouth.y - point.y
         let length = max(1, hypot(dx, dy))
-        let speed = FlickFlight.speed(forDistance: length)
+        let speed = FlickFlight.speed(forDistance: length, style: .classic)
         return CGPoint(x: dx / length * speed, y: dy / length * speed)
     }
 

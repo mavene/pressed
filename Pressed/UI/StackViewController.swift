@@ -76,7 +76,7 @@ final class StackViewController: UIViewController {
         cardsStack.axis = .vertical
         cardsStack.spacing = 18
 
-        emptyLabel.text = "Nothing waiting. Go live a little."
+        emptyLabel.text = "Nothing waiting, do you even read?"
         emptyLabel.font = Theme.serif(20, .regular, style: .title3, italic: true)
         emptyLabel.textColor = Theme.inkQuiet
         emptyLabel.textAlignment = .center

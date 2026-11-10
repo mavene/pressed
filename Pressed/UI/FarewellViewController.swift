@@ -47,7 +47,7 @@ final class FarewellViewController: UIViewController {
         detailLabel.adjustsFontForContentSizeCategory = true
 
         var config = UIButton.Configuration.filled()
-        config.title = records.count == 1 ? "Rest in peace" : "Warm enough"
+        config.title = records.count == 1 ? "Rest in pieces" : "Warm enough"
         config.baseBackgroundColor = Theme.paper0
         config.baseForegroundColor = Theme.ink
         config.cornerStyle = .capsule

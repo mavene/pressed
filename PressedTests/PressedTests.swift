@@ -364,15 +364,25 @@ final class DisplayTitleTests: XCTestCase {
 @MainActor
 final class FlickPhysicsTests: XCTestCase {
     func testSweepSpeedRoundTripsToTheSameDistance() {
-        for distance in stride(from: CGFloat(60), through: 700, by: 40) {
-            let speed = FlickFlight.speed(forDistance: distance)
-            XCTAssertEqual(FlickFlight.distance(forSpeed: speed), distance, accuracy: 0.01)
+        for style in [FlickFlight.Style.lob, .classic] {
+            for distance in stride(from: CGFloat(60), through: 700, by: 40) {
+                let speed = FlickFlight.speed(forDistance: distance, style: style)
+                XCTAssertEqual(FlickFlight.distance(forSpeed: speed, style: style), distance, accuracy: 0.01)
+            }
         }
     }
 
     func testHarderFlicksTravelFartherButLessThanLinearly() {
-        XCTAssertLessThan(FlickFlight.distance(forSpeed: 1200), FlickFlight.distance(forSpeed: 2000))
-        let capped = FlickFlight.distance(forSpeed: 4400)
-        XCTAssertLessThan(capped, 4400 * FlickFlight.reach)
+        for style in [FlickFlight.Style.lob, .classic] {
+            XCTAssertLessThan(FlickFlight.distance(forSpeed: 1200, style: style), FlickFlight.distance(forSpeed: 2000, style: style))
+            let capped = FlickFlight.distance(forSpeed: 4400, style: style)
+            XCTAssertLessThan(capped, 4400 * FlickFlight.reach(style))
+        }
+    }
+
+    func testFireplaceKeepsTheOriginalFeel() {
+        XCTAssertEqual(FlickFlight.reach(.classic), 0.14)
+        XCTAssertEqual(FlickMath.minimumThrowSpeed(.classic), 220)
+        XCTAssertGreaterThan(FlickMath.minimumThrowSpeed(.lob), FlickMath.minimumThrowSpeed(.classic))
     }
 }

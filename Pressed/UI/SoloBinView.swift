@@ -57,7 +57,7 @@ final class SoloBinView: FarewellSceneView {
 
         let size = WasteBinView.size
         binFrame = CGRect(x: bounds.midX - size.width / 2,
-                          y: bounds.height * 0.44 - size.height / 2,
+                          y: max(safeAreaInsets.top + 90, bounds.height * 0.44 - size.height / 2 - size.height),
                           width: size.width, height: size.height)
         [binBack, binFront].forEach { $0.frame = binFrame }
 
@@ -191,7 +191,7 @@ final class SoloBinView: FarewellSceneView {
 
     private func released(_ piece: PieceView, at point: CGPoint, velocity: CGPoint) {
         recognizer?.candidates.removeAll { $0 === piece }
-        guard FlickMath.speed(velocity) > FlickMath.minimumThrowSpeed else {
+        guard FlickMath.speed(velocity) > FlickMath.minimumThrowSpeed() else {
             returnHome(piece)
             return
         }

@@ -46,12 +46,19 @@ final class BookmarkDetailViewController: UIViewController {
         ])
         more.showsMenuAsPrimaryAction = true
 
-        let row = UIStackView(arrangedSubviews: [back, UIView(), number, UIView(), more])
+        let row = UIStackView(arrangedSubviews: [back, UIView(), more])
         row.axis = .horizontal
         row.alignment = .center
         row.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(row)
+        number.translatesAutoresizingMaskIntoConstraints = false
+        view.addSubview(number)
         NSLayoutConstraint.activate([
+            // Truly centred, and never closer than 16pt to either button.
+            number.centerXAnchor.constraint(equalTo: view.centerXAnchor),
+            number.centerYAnchor.constraint(equalTo: row.centerYAnchor),
+            number.leadingAnchor.constraint(greaterThanOrEqualTo: back.trailingAnchor, constant: 16),
+            number.trailingAnchor.constraint(lessThanOrEqualTo: more.leadingAnchor, constant: -16),
             row.topAnchor.constraint(equalTo: view.safeAreaLayoutGuide.topAnchor, constant: 8),
             row.leadingAnchor.constraint(equalTo: view.leadingAnchor, constant: 22),
             row.trailingAnchor.constraint(equalTo: view.trailingAnchor, constant: -22)
@@ -206,8 +213,14 @@ final class BookmarkDetailViewController: UIViewController {
         content.spacing = 14
         content.translatesAutoresizingMaskIntoConstraints = false
 
+        // The cord loops round the strip of paper above the hole: behind the card it runs up to the knot,
+        // in front it crosses the top edge and dips into the hole.
+        let strand = StrandView()
+        strand.translatesAutoresizingMaskIntoConstraints = false
+
         paper.addSubview(hole)
         paper.addSubview(content)
+        paper.addSubview(strand)
         scroll.addSubview(tassel)
         scroll.addSubview(paper)
 
@@ -235,6 +248,11 @@ final class BookmarkDetailViewController: UIViewController {
             hole.centerXAnchor.constraint(equalTo: paper.centerXAnchor),
             hole.widthAnchor.constraint(equalToConstant: 14),
             hole.heightAnchor.constraint(equalToConstant: 14),
+
+            strand.topAnchor.constraint(equalTo: paper.topAnchor, constant: -2),
+            strand.centerXAnchor.constraint(equalTo: paper.centerXAnchor),
+            strand.widthAnchor.constraint(equalToConstant: 24),
+            strand.bottomAnchor.constraint(equalTo: hole.centerYAnchor, constant: 1),
 
             content.topAnchor.constraint(equalTo: paper.topAnchor, constant: 40),
             content.leadingAnchor.constraint(equalTo: paper.leadingAnchor, constant: 22),
@@ -293,6 +311,42 @@ private final class TasselView: UIView {
         cord.path = path.cgPath
         knot.frame = bounds
         knot.path = UIBezierPath(ovalIn: CGRect(x: w / 2 - 5, y: 0, width: 10, height: 10)).cgPath
+    }
+}
+
+/// The front half of the cord's loop: over the top edge of the card and into the hole.
+private final class StrandView: UIView {
+    private let cord = CAShapeLayer()
+
+    override init(frame: CGRect) {
+        super.init(frame: frame)
+        isUserInteractionEnabled = false
+        isAccessibilityElement = false
+        cord.strokeColor = UIColor(hex: 0x9E2F24).cgColor
+        cord.fillColor = UIColor.clear.cgColor
+        cord.lineWidth = 2.2
+        cord.lineCap = .round
+        cord.shadowColor = UIColor.black.cgColor
+        cord.shadowOpacity = 0.3
+        cord.shadowRadius = 1
+        cord.shadowOffset = CGSize(width: 0, height: 1)
+        layer.addSublayer(cord)
+    }
+
+    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
+
+    override func layoutSubviews() {
+        super.layoutSubviews()
+        let w = bounds.width, h = bounds.height
+        let path = UIBezierPath()
+        // Starts exactly where the back strand slips behind the card's top edge (2pt right of centre, 2pt down
+        // in this view), so the loop reads as one continuous cord.
+        path.move(to: CGPoint(x: w / 2 + 2, y: 2))
+        path.addCurve(to: CGPoint(x: w / 2, y: h),
+                      controlPoint1: CGPoint(x: w / 2 + 2, y: 2 + (h - 2) * 0.35),
+                      controlPoint2: CGPoint(x: w / 2 + 1, y: 2 + (h - 2) * 0.7))
+        cord.frame = bounds
+        cord.path = path.cgPath
     }
 }
 
