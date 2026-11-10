@@ -1,0 +1,46 @@
+Pressed/UI/BookmarkDetailViewController.swift
+  s_bb035846bcfa8d::t_71b30a8fae31a0 49,54-55,57-61
+  s_bb035846bcfa8d::t_9996a886e721c7 216-220,223,253-256,317-341,345,348-350
+  s_bb035846bcfa8d::t_00a2633c2f54e9 252,342-344,346-347
+  s_bb035846bcfa8d::t_a8cf375f6e9c0e 351-352
+Pressed/UI/FarewellViewController.swift
+  s_bb035846bcfa8d::t_3b1852c66a3f3f 50
+Pressed/UI/ShelfViewController.swift
+  s_bb035846bcfa8d::t_1a045eca7d78b5 289
+  s_bb035846bcfa8d::t_2c9f08ad39071a 309
+Pressed/UI/PileViewController.swift
+  s_bb035846bcfa8d::t_e8534d1734007b 263
+Pressed/UI/FlickGame.swift
+  s_bb035846bcfa8d::t_0ecba927de28c1 174-176,219,234,281,283-284,288,292-300,304
+  s_bb035846bcfa8d::t_ca7384863dabbd 262-280
+  s_bb035846bcfa8d::t_c1ea45ad91572d 138
+  s_bb035846bcfa8d::t_0e10a63780b36e 140
+  s_bb035846bcfa8d::t_746dbd6791c305 291
+  s_bb035846bcfa8d::t_5e1178ed25628e 12-14,130-133,143-144,147-150,154-157,177,184-185,195,220-228,235-236
+  s_bb035846bcfa8d::t_74cf9c9158c8cd 134
+Pressed/UI/SoloBinView.swift
+  s_bb035846bcfa8d::t_746dbd6791c305 60
+  s_bb035846bcfa8d::t_ca7384863dabbd 194
+Pressed/UI/FireplaceView.swift
+  s_bb035846bcfa8d::t_ca7384863dabbd 317,328,387
+PressedTests/PressedTests.swift
+  s_bb035846bcfa8d::t_0e10a63780b36e 367-371,376-386
+Pressed/UI/StackViewController.swift
+  s_bb035846bcfa8d::t_83fba35e30d6d1 79
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "0676b7c5f40c90a51d9d005b43bc4a60b64aee57",
+  "prompts": {},
+  "sessions": {
+    "s_bb035846bcfa8d": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "8537eb33-a783-461c-ac5a-464bad3c071b",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Dian Maisara <dian.maisara@foodpanda.com>"
+    }
+  }
+}
