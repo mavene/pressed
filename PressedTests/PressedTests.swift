@@ -383,3 +383,73 @@ final class FlickPhysicsTests: XCTestCase {
         XCTAssertGreaterThan(FlickMath.minimumThrowSpeed(.lob), FlickMath.minimumThrowSpeed(.classic))
     }
 }
+
+final class FocusRulesTests: XCTestCase {
+    private let calendar = makeCalendar()
+
+    private func locked(now: Date,
+                        enabled: Bool = true,
+                        hasSelection: Bool = true,
+                        lastPressedDay: String? = nil,
+                        hasPending: Bool = true,
+                        bypassUntil: Date? = nil) -> Bool {
+        FocusRules.shouldBeLocked(
+            now: now, enabled: enabled, hasSelection: hasSelection, lockHour: 20, lockMinute: 0,
+            lastPressedDay: lastPressedDay, hasPending: hasPending, bypassUntil: bypassUntil, calendar: calendar)
+    }
+
+    func testOpenBeforeLockTime() {
+        XCTAssertFalse(locked(now: date(2026, 11, 10, 19, 59)))
+    }
+
+    func testLockedFromLockTimeUntilPress() {
+        XCTAssertTrue(locked(now: date(2026, 11, 10, 20, 0)))
+        XCTAssertTrue(locked(now: date(2026, 11, 10, 23, 45)))
+    }
+
+    func testPressTodayUnlocks() {
+        let today = FocusRules.dayKey(date(2026, 11, 10), calendar: calendar)
+        XCTAssertFalse(locked(now: date(2026, 11, 10, 21), lastPressedDay: today))
+    }
+
+    func testYesterdaysPressDoesNotCountToday() {
+        let yesterday = FocusRules.dayKey(date(2026, 11, 9), calendar: calendar)
+        XCTAssertTrue(locked(now: date(2026, 11, 10, 21), lastPressedDay: yesterday))
+    }
+
+    func testEmptyStackNeverLocks() {
+        XCTAssertFalse(locked(now: date(2026, 11, 10, 21), hasPending: false))
+    }
+
+    func testDisabledOrNothingChosenNeverLocks() {
+        XCTAssertFalse(locked(now: date(2026, 11, 10, 21), enabled: false))
+        XCTAssertFalse(locked(now: date(2026, 11, 10, 21), hasSelection: false))
+    }
+
+    func testNotNowBypassHoldsThenExpires() {
+        let now = date(2026, 11, 10, 21, 0)
+        XCTAssertFalse(locked(now: now, bypassUntil: date(2026, 11, 10, 21, 15)))
+        XCTAssertTrue(locked(now: now, bypassUntil: date(2026, 11, 10, 20, 59)))
+    }
+
+    func testLockTimeIsClampedBeforeMidnight() {
+        let late = FocusRules.shouldBeLocked(
+            now: date(2026, 11, 10, 23, 31), enabled: true, hasSelection: true, lockHour: 23, lockMinute: 55,
+            lastPressedDay: nil, hasPending: true, bypassUntil: nil, calendar: calendar)
+        XCTAssertTrue(late)
+    }
+
+    func testDayKeyUsesCalendarDay() {
+        XCTAssertEqual(FocusRules.dayKey(date(2026, 1, 5), calendar: calendar), "2026-01-05")
+    }
+}
+
+@MainActor
+final class ReaderRulesTests: XCTestCase {
+    func testNeedsALoadedPageAndEnoughTime() {
+        XCTAssertTrue(ReaderCoordinator.countsAsRead(loaded: true, seconds: 5))
+        XCTAssertTrue(ReaderCoordinator.countsAsRead(loaded: true, seconds: 120))
+        XCTAssertFalse(ReaderCoordinator.countsAsRead(loaded: true, seconds: 4.9))
+        XCTAssertFalse(ReaderCoordinator.countsAsRead(loaded: false, seconds: 120))
+    }
+}

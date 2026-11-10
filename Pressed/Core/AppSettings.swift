@@ -43,4 +43,9 @@ enum AppSettings {
         get { defaults.bool(forKey: "hasAskedForNotifications") }
         set { defaults.set(newValue, forKey: "hasAskedForNotifications") }
     }
+
+    static var hasOfferedFocus: Bool {
+        get { defaults.bool(forKey: "hasOfferedFocus") }
+        set { defaults.set(newValue, forKey: "hasOfferedFocus") }
+    }
 }
