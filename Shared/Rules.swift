@@ -21,6 +21,34 @@ enum CurlRules {
     }
 }
 
+// MARK: - Expiry
+
+enum ExpiryRules {
+    /// A card lasts through the whole of its last day, so it expires at 23:59:59 on that day, not at the
+    /// time of day it was saved.
+    static func dueDate(from start: Date, addingDays days: Int, calendar: Calendar = .current) -> Date {
+        let lastDay = calendar.date(byAdding: .day, value: days, to: start) ?? start
+        let nextMidnight = calendar.date(byAdding: .day, value: 1, to: calendar.startOfDay(for: lastDay)) ?? lastDay
+        return nextMidnight.addingTimeInterval(-1)
+    }
+}
+
+// MARK: - Metadata retries
+
+/// How often a card with no title may be looked up again. A card gets at most `maxAttempts` tries in total,
+/// with longer waits in between, so a site that never answers is not hammered on every launch.
+enum MetadataRetryPolicy {
+    static let maxAttempts = 4
+    /// Wait before the 2nd, 3rd and 4th attempt.
+    static let waits: [TimeInterval] = [3_600, 6 * 3_600, 24 * 3_600]
+
+    static func shouldAttempt(attempts: Int, lastAttemptAt: Date?, now: Date, ignoringWait: Bool = false) -> Bool {
+        guard attempts < maxAttempts else { return false }
+        guard attempts > 0, let last = lastAttemptAt, !ignoringWait else { return true }
+        return now.timeIntervalSince(last) >= waits[min(attempts - 1, waits.count - 1)]
+    }
+}
+
 // MARK: - Due label
 
 enum DueLabel {

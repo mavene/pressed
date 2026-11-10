@@ -114,3 +114,10 @@ final class HoldToPressControl: UIControl {
         setNeedsLayout()
     }
 }
+
+#if DEBUG
+extension HoldToPressControl {
+    /// Debug builds only: runs the real hold animation, as if a finger were held down.
+    func debugHold() { begin() }
+}
+#endif

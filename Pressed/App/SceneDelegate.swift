@@ -20,6 +20,9 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         AppRouter.shared.attach(root)
         NudgeCoordinator.shared.start()
+        #if DEBUG
+        DebugScreenshots.run(root: root)
+        #endif
 
         if let url = connectionOptions.urlContexts.first?.url {
             AppRouter.shared.handle(url: url)

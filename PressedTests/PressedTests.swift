@@ -288,3 +288,91 @@ final class NudgeTests: XCTestCase {
         XCTAssertEqual(dates.count, 2)
     }
 }
+
+// MARK: - Expiry
+
+final class ExpiryRulesTests: XCTestCase {
+    func testExpiresAtEndOfLastDay() {
+        let calendar = makeCalendar()
+        let due = ExpiryRules.dueDate(from: date(2026, 11, 3, 9), addingDays: 7, calendar: calendar)
+        XCTAssertEqual(due, date(2026, 11, 10, 23, 59).addingTimeInterval(59))
+        XCTAssertFalse(CurlRules.isExpired(dueAt: due, now: date(2026, 11, 10, 20)))
+        XCTAssertTrue(CurlRules.isExpired(dueAt: due, now: date(2026, 11, 11, 0, 0)))
+    }
+
+    func testRescueStaysAtEndOfDay() {
+        let calendar = makeCalendar()
+        let due = date(2026, 11, 10, 23, 59).addingTimeInterval(59)
+        XCTAssertEqual(ExpiryRules.dueDate(from: due, addingDays: 3, calendar: calendar), date(2026, 11, 13, 23, 59).addingTimeInterval(59))
+    }
+}
+
+// MARK: - Metadata retries
+
+final class MetadataRetryPolicyTests: XCTestCase {
+    private let now = date(2026, 11, 10, 12)
+
+    func testFirstAttemptIsAlwaysAllowed() {
+        XCTAssertTrue(MetadataRetryPolicy.shouldAttempt(attempts: 0, lastAttemptAt: nil, now: now))
+    }
+
+    func testRetriesWaitLongerEachTime() {
+        let hour: TimeInterval = 3_600
+        XCTAssertFalse(MetadataRetryPolicy.shouldAttempt(attempts: 1, lastAttemptAt: now.addingTimeInterval(-0.5 * hour), now: now))
+        XCTAssertTrue(MetadataRetryPolicy.shouldAttempt(attempts: 1, lastAttemptAt: now.addingTimeInterval(-hour), now: now))
+        XCTAssertFalse(MetadataRetryPolicy.shouldAttempt(attempts: 2, lastAttemptAt: now.addingTimeInterval(-5 * hour), now: now))
+        XCTAssertTrue(MetadataRetryPolicy.shouldAttempt(attempts: 2, lastAttemptAt: now.addingTimeInterval(-6 * hour), now: now))
+        XCTAssertFalse(MetadataRetryPolicy.shouldAttempt(attempts: 3, lastAttemptAt: now.addingTimeInterval(-23 * hour), now: now))
+        XCTAssertTrue(MetadataRetryPolicy.shouldAttempt(attempts: 3, lastAttemptAt: now.addingTimeInterval(-24 * hour), now: now))
+    }
+
+    func testStopsAfterMaxAttempts() {
+        let longAgo = now.addingTimeInterval(-30 * 86_400)
+        XCTAssertFalse(MetadataRetryPolicy.shouldAttempt(attempts: MetadataRetryPolicy.maxAttempts, lastAttemptAt: longAgo, now: now))
+        XCTAssertFalse(MetadataRetryPolicy.shouldAttempt(attempts: MetadataRetryPolicy.maxAttempts, lastAttemptAt: longAgo, now: now, ignoringWait: true))
+    }
+
+    func testIgnoringWaitSkipsOnlyTheWait() {
+        XCTAssertTrue(MetadataRetryPolicy.shouldAttempt(attempts: 2, lastAttemptAt: now, now: now, ignoringWait: true))
+    }
+}
+
+// MARK: - Display title
+
+final class DisplayTitleTests: XCTestCase {
+    private func record(title: String?, custom: String?) -> CardRecord {
+        CardRecord(id: UUID(), url: URL(string: "https://www.example.com/a")!, title: title, siteName: nil, imageData: nil,
+                   kind: .article, estMinutes: nil, savedAt: date(2026, 11, 1), dueAt: date(2026, 11, 8), status: .pending,
+                   pressedAt: nil, crumbledAt: nil, rescuedAt: nil, note: nil, finish: .none, sealSeed: 0,
+                   customTitle: custom)
+    }
+
+    func testCustomBeatsFetchedBeatsHost() {
+        XCTAssertEqual(record(title: "Fetched", custom: "Mine").displayTitle, "Mine")
+        XCTAssertEqual(record(title: "Fetched", custom: nil).displayTitle, "Fetched")
+        XCTAssertEqual(record(title: "Fetched", custom: "  ").displayTitle, "Fetched")
+        XCTAssertEqual(record(title: nil, custom: nil).displayTitle, "example.com")
+    }
+
+    func testFetchedTitleIgnoresCustom() {
+        XCTAssertEqual(record(title: nil, custom: "Mine").fetchedTitle, "example.com")
+    }
+}
+
+// MARK: - Flick physics
+
+@MainActor
+final class FlickPhysicsTests: XCTestCase {
+    func testSweepSpeedRoundTripsToTheSameDistance() {
+        for distance in stride(from: CGFloat(60), through: 700, by: 40) {
+            let speed = FlickFlight.speed(forDistance: distance)
+            XCTAssertEqual(FlickFlight.distance(forSpeed: speed), distance, accuracy: 0.01)
+        }
+    }
+
+    func testHarderFlicksTravelFartherButLessThanLinearly() {
+        XCTAssertLessThan(FlickFlight.distance(forSpeed: 1200), FlickFlight.distance(forSpeed: 2000))
+        let capped = FlickFlight.distance(forSpeed: 4400)
+        XCTAssertLessThan(capped, 4400 * FlickFlight.reach)
+    }
+}

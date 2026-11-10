@@ -19,6 +19,9 @@ final class Card: NSManagedObject {
     @NSManaged var note: String?
     @NSManaged var finishRaw: Int16
     @NSManaged var sealSeed: Int32
+    @NSManaged var customTitle: String?
+    @NSManaged var metaAttempts: Int16
+    @NSManaged var metaLastAttemptAt: Date?
 }
 
 extension Card {
@@ -45,7 +48,8 @@ extension Card {
             rescuedAt: rescuedAt,
             note: note,
             finish: CardFinish(rawValue: finishRaw) ?? .none,
-            sealSeed: sealSeed
+            sealSeed: sealSeed,
+            customTitle: customTitle
         )
     }
 }
@@ -119,7 +123,10 @@ final class PersistenceController {
             attribute("rescuedAt", .dateAttributeType),
             attribute("note", .stringAttributeType),
             attribute("finishRaw", .integer16AttributeType, defaultValue: 0),
-            attribute("sealSeed", .integer32AttributeType, defaultValue: 0)
+            attribute("sealSeed", .integer32AttributeType, defaultValue: 0),
+            attribute("customTitle", .stringAttributeType),
+            attribute("metaAttempts", .integer16AttributeType, defaultValue: 0),
+            attribute("metaLastAttemptAt", .dateAttributeType)
         ]
 
         let model = NSManagedObjectModel()

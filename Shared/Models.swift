@@ -43,6 +43,8 @@ struct CardRecord: Hashable, Identifiable {
     var note: String?
     var finish: CardFinish
     var sealSeed: Int32
+    /// What the user typed on the press screen. Beats the fetched title and is never overwritten by a fetch.
+    var customTitle: String? = nil
 }
 
 extension CardRecord {
@@ -52,7 +54,14 @@ extension CardRecord {
         return raw.replacingOccurrences(of: "www.", with: "", options: .anchored)
     }
 
+    /// The user's own title, else the fetched one, else the host.
     var displayTitle: String {
+        let custom = customTitle?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
+        return custom.isEmpty ? fetchedTitle : custom
+    }
+
+    /// The fetched title, else the host. Ignores any custom title.
+    var fetchedTitle: String {
         let trimmed = title?.trimmingCharacters(in: .whitespacesAndNewlines) ?? ""
         return trimmed.isEmpty ? host : trimmed
     }

@@ -83,7 +83,7 @@ final class CardStore {
         card.urlString = url.absoluteString
         card.kindRaw = KindDetector.detect(url: url).rawValue
         card.savedAt = savedAt
-        card.dueAt = savedAt.addingTimeInterval(Double(AppSettings.shelfLifeDays) * 86_400)
+        card.dueAt = ExpiryRules.dueDate(from: savedAt, addingDays: AppSettings.shelfLifeDays)
         card.statusRaw = CardStatus.pending.rawValue
         card.finishRaw = CardFinish.none.rawValue
         card.sealSeed = sealSeed ?? Int32.random(in: 0..<10_000)
@@ -105,6 +105,36 @@ final class CardStore {
         return added
     }
 
+    // MARK: Metadata lookups
+
+    private func cardsMissingTitle() -> [Card] {
+        fetchCards(predicate: NSPredicate(format: "title == nil OR title == ''"))
+    }
+
+    /// Cards (any status) with no fetched title that the retry policy lets us look up now.
+    func cardsNeedingMetadata(now: Date = Date()) -> [CardRecord] {
+        cardsMissingTitle()
+            .filter {
+                MetadataRetryPolicy.shouldAttempt(attempts: Int($0.metaAttempts), lastAttemptAt: $0.metaLastAttemptAt, now: now)
+            }
+            .compactMap { $0.record }
+    }
+
+    /// Whether one card may be looked up. `ignoringWait` is for the press screen: the user is looking right at it.
+    func mayFetchMetadata(id: UUID, ignoringWait: Bool = false, now: Date = Date()) -> Bool {
+        guard let card = card(id), (card.title ?? "").isEmpty else { return false }
+        return MetadataRetryPolicy.shouldAttempt(
+            attempts: Int(card.metaAttempts), lastAttemptAt: card.metaLastAttemptAt, now: now, ignoringWait: ignoringWait)
+    }
+
+    /// Counts a lookup before it starts, so a crash or a failure still uses up an attempt.
+    func recordMetadataAttempt(id: UUID, now: Date = Date()) {
+        guard let card = card(id) else { return }
+        card.metaAttempts = card.metaAttempts &+ 1
+        card.metaLastAttemptAt = now
+        save()
+    }
+
     func updateMetadata(id: UUID, result: MetadataResult) {
         guard let card = card(id) else { return }
         if let title = result.title?.trimmingCharacters(in: .whitespacesAndNewlines), !title.isEmpty {
@@ -119,7 +149,7 @@ final class CardStore {
 
     // MARK: Press, crumble, rescue
 
-    func press(id: UUID, note: String?, now: Date = Date()) -> CardRecord? {
+    func press(id: UUID, note: String?, title: String? = nil, now: Date = Date()) -> CardRecord? {
         guard let card = card(id),
               CardStatus(rawValue: card.statusRaw) == .pending,
               let savedAt = card.savedAt,
@@ -128,6 +158,10 @@ final class CardStore {
         card.statusRaw = CardStatus.pressed.rawValue
         card.pressedAt = now
         card.note = (trimmed?.isEmpty ?? true) ? nil : trimmed
+        // A typed title is kept as the user's own; an empty field leaves the fetched title in charge.
+        if let custom = title?.trimmingCharacters(in: .whitespacesAndNewlines), !custom.isEmpty {
+            card.customTitle = custom
+        }
         card.finishRaw = FinishRules.finish(
             savedAt: savedAt,
             pressedAt: now,
@@ -166,13 +200,15 @@ final class CardStore {
         return records
     }
 
-    /// Pushes the due date back by three days, once per card.
-    func rescue(id: UUID, now: Date = Date()) -> CardRecord? {
+    /// Rescue from the widget: an expired card that is opened from the widget gets the rest of today to be
+    /// read and pressed. Once per card. Returns nil if the card is not expired, was already rescued, or is gone.
+    @discardableResult
+    func rescueIfExpired(id: UUID, now: Date = Date()) -> CardRecord? {
         guard let card = card(id),
               CardStatus(rawValue: card.statusRaw) == .pending,
               card.rescuedAt == nil,
-              let dueAt = card.dueAt, dueAt > now else { return nil }
-        card.dueAt = dueAt.addingTimeInterval(3 * 86_400)
+              let dueAt = card.dueAt, dueAt <= now else { return nil }
+        card.dueAt = ExpiryRules.dueDate(from: now, addingDays: 0)
         card.rescuedAt = now
         save()
         return card.record

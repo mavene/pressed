@@ -117,6 +117,9 @@ private extension Color {
     static let inkQuiet = Color(hex: 0x62574A)
     static let stampRed = Color(hex: 0x8E2A20)
     static let outline = Color(hex: 0xCDBFA9)
+    static let waxFill = Color(hex: 0x9E2F24)
+    static let waxRing = Color(hex: 0x6E1E16)
+    static let waxLetter = Color(hex: 0xF1D3C8)
 }
 
 private struct Fold: Shape {
@@ -144,6 +147,46 @@ private struct StampView: View {
     }
 }
 
+/// The scalloped wax seal body, same geometry as the app's `WaxSealView`.
+private struct SealBody: Shape {
+    func path(in rect: CGRect) -> Path {
+        let r = min(rect.width, rect.height) / 2
+        let c = CGPoint(x: rect.midX, y: rect.midY)
+        var path = Path()
+        path.addEllipse(in: CGRect(x: c.x - r * 0.75, y: c.y - r * 0.75, width: r * 1.5, height: r * 1.5))
+        for k in 0..<12 {
+            let angle = CGFloat(k) * (.pi * 2 / 12)
+            let center = CGPoint(x: c.x + cos(angle) * r * 0.78, y: c.y + sin(angle) * r * 0.78)
+            path.addEllipse(in: CGRect(x: center.x - r * 0.17, y: center.y - r * 0.17,
+                                       width: r * 0.34, height: r * 0.34))
+        }
+        return path
+    }
+}
+
+/// The plain red seal (the app's `.none` finish) at a fixed angle, so it always looks the same.
+private struct WaxSealMark: View {
+    var size: CGFloat = 48
+
+    var body: some View {
+        let r = size / 2
+        ZStack {
+            SealBody()
+                .fill(Color.waxFill)
+                .shadow(color: .black.opacity(0.28), radius: 2, y: 2)
+            Circle()
+                .stroke(Color.waxRing, lineWidth: max(1, r * 0.05))
+                .frame(width: r * 1.06, height: r * 1.06)
+            Text("P")
+                .font(.system(size: r * 0.62, weight: .bold, design: .serif))
+                .foregroundStyle(Color.waxLetter)
+        }
+        .frame(width: size, height: size)
+        .rotationEffect(.degrees(-6))
+        .accessibilityHidden(true)
+    }
+}
+
 struct PressedWidgetView: View {
     let entry: PressedEntry
     @Environment(\.widgetFamily) private var family
@@ -152,7 +195,7 @@ struct PressedWidgetView: View {
         Group {
             if let card = entry.card {
                 content(for: card)
-                    .widgetURL(URL(string: "pressed://card/\(card.id.uuidString)"))
+                    .widgetURL(URL(string: "pressed://card/\(card.id.uuidString)?from=widget"))
             } else {
                 empty
                     .widgetURL(URL(string: "pressed://stack"))
@@ -198,6 +241,11 @@ struct PressedWidgetView: View {
                     .foregroundStyle(Color.inkQuiet)
                     .lineLimit(1)
                 Spacer(minLength: 0)
+                if CurlRules.isExpired(dueAt: card.dueAt, now: entry.date) {
+                    Text("Tap to rescue")
+                        .font(.system(size: 10, weight: .medium, design: .monospaced))
+                        .foregroundStyle(Color.stampRed)
+                }
                 HStack(alignment: .bottom) {
                     StampView(text: stampText(for: card))
                     Spacer()
@@ -219,7 +267,11 @@ struct PressedWidgetView: View {
     }
 
     private var empty: some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 6) {
+            if family != .accessoryRectangular {
+                WaxSealMark(size: family == .systemMedium ? 56 : 44)
+                Spacer(minLength: 0)
+            }
             Text("Nothing waiting.")
                 .font(.system(size: 16, weight: .semibold, design: .serif))
                 .foregroundStyle(Color.ink)

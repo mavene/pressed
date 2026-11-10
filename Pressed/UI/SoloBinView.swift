@@ -199,9 +199,9 @@ final class SoloBinView: FarewellSceneView {
     }
 
     /// Throws a piece along an arc; near the bin, it goes in.
-    private func launch(_ piece: PieceView, velocity: CGPoint) {
-        let flight = FlickFlight(view: piece, velocity: velocity, target: mouth, hitRadius: 36, assistRadius: 80,
-                                 startAngle: piece.homeAngle, startScale: piece.homeScale * 1.08, endScale: 0.5)
+    private func launch(_ piece: PieceView, velocity: CGPoint, scripted: Bool = false) {
+        let flight = FlickFlight(view: piece, velocity: velocity, target: mouth, hitRadius: 42, assistRadius: 100,
+                                 startAngle: piece.homeAngle, startScale: piece.homeScale * 1.08, endScale: 0.5, scripted: scripted)
         flight.onHit = { [weak self] in self?.sink(piece) }
         flight.onMiss = { [weak self] kind, point in self?.missed(piece, kind, at: point) }
         flight.launch()
@@ -251,7 +251,7 @@ final class SoloBinView: FarewellSceneView {
 
     private func backOnDesk(_ piece: PieceView) {
         if sweeping {
-            launch(piece, velocity: sweepVelocity(from: piece.center))
+            launch(piece, velocity: sweepVelocity(from: piece.center), scripted: true)
         } else {
             recognizer?.candidates.append(piece)
         }
@@ -260,7 +260,7 @@ final class SoloBinView: FarewellSceneView {
     private func sweepVelocity(from point: CGPoint) -> CGPoint {
         let dx = mouth.x - point.x, dy = mouth.y - point.y
         let length = max(1, hypot(dx, dy))
-        let speed = length / FlickFlight.reach
+        let speed = FlickFlight.speed(forDistance: length)
         return CGPoint(x: dx / length * speed, y: dy / length * speed)
     }
 
@@ -319,7 +319,7 @@ final class SoloBinView: FarewellSceneView {
         for (index, piece) in remaining.enumerated() {
             after(Double(index) * 0.14) { [weak self] in
                 guard let self else { return }
-                self.launch(piece, velocity: self.sweepVelocity(from: piece.center))
+                self.launch(piece, velocity: self.sweepVelocity(from: piece.center), scripted: true)
             }
         }
     }

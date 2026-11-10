@@ -14,6 +14,8 @@ final class PressViewController: UIViewController, UITextFieldDelegate {
     private let preview = CardContentView(showsStamp: false)
     private let seal = WaxSealView(frame: .zero)
     private let noteField = PaddedTextField()
+    private let titleField = PaddedTextField()
+    private var changeObserver: NSObjectProtocol?
     private let holdControl = HoldToPressControl()
 
     init(card: CardRecord) {
@@ -22,7 +24,7 @@ final class PressViewController: UIViewController, UITextFieldDelegate {
         modalPresentationStyle = .pageSheet
         if let sheet = sheetPresentationController {
             let press = UISheetPresentationController.Detent.custom(identifier: Self.pressDetent) { context in
-                min(600, context.maximumDetentValue)
+                min(700, context.maximumDetentValue)
             }
             sheet.detents = [press, .large()]
             sheet.selectedDetentIdentifier = Self.pressDetent
@@ -87,6 +89,29 @@ final class PressViewController: UIViewController, UITextFieldDelegate {
         noteField.accessibilityLabel = "What stuck with you?"
         noteField.heightAnchor.constraint(equalToConstant: 50).isActive = true
 
+        let titleLabel = UILabel()
+        titleLabel.text = "Title"
+        titleLabel.font = Theme.sans(14, .semibold, style: .subheadline)
+        titleLabel.textColor = Theme.ink
+        titleLabel.adjustsFontForContentSizeCategory = true
+
+        titleField.backgroundColor = Theme.paper0
+        titleField.layer.cornerRadius = 12
+        titleField.layer.borderWidth = 1
+        titleField.layer.borderColor = Theme.outline.cgColor
+        titleField.font = Theme.serif(16, .regular, style: .body)
+        titleField.textColor = Theme.ink
+        titleField.returnKeyType = .next
+        titleField.autocapitalizationType = .sentences
+        titleField.delegate = self
+        titleField.accessibilityLabel = "Title"
+        titleField.heightAnchor.constraint(equalToConstant: 50).isActive = true
+        updateTitlePlaceholder(for: card)
+
+        let titleStack = UIStackView(arrangedSubviews: [titleLabel, titleField])
+        titleStack.axis = .vertical
+        titleStack.spacing = 8
+
         let fieldStack = UIStackView(arrangedSubviews: [fieldLabel, noteField])
         fieldStack.axis = .vertical
         fieldStack.spacing = 8
@@ -121,7 +146,7 @@ final class PressViewController: UIViewController, UITextFieldDelegate {
             self?.dismiss(animated: true)
         }, for: .touchUpInside)
 
-        let stack = UIStackView(arrangedSubviews: [headline, previewWrap, fieldStack, holdControl,
+        let stack = UIStackView(arrangedSubviews: [headline, previewWrap, titleStack, fieldStack, holdControl,
                                                    withoutNoteButton, notYetButton])
         stack.axis = .vertical
         stack.spacing = 18
@@ -146,6 +171,31 @@ final class PressViewController: UIViewController, UITextFieldDelegate {
             stack.leadingAnchor.constraint(equalTo: scroll.frameLayoutGuide.leadingAnchor, constant: 24),
             stack.trailingAnchor.constraint(equalTo: scroll.frameLayoutGuide.trailingAnchor, constant: -24)
         ])
+
+        startTitleLookup()
+    }
+
+    // MARK: Title
+
+    /// The placeholder is the fetched title (or the host until one arrives). Typing over it makes a custom title.
+    private func updateTitlePlaceholder(for record: CardRecord) {
+        titleField.attributedPlaceholder = NSAttributedString(
+            string: record.fetchedTitle,
+            attributes: [.foregroundColor: Theme.inkQuiet])
+    }
+
+    private func startTitleLookup() {
+        guard card.title == nil else { return }
+        MetadataService.shared.enrichOnDemand(card)
+        changeObserver = NotificationCenter.default.addObserver(
+            forName: .cardsDidChange, object: nil, queue: .main) { [weak self] _ in
+            guard let self, let latest = CardStore.shared.fetchRecord(id: self.card.id) else { return }
+            self.updateTitlePlaceholder(for: latest)
+        }
+    }
+
+    deinit {
+        if let changeObserver { NotificationCenter.default.removeObserver(changeObserver) }
     }
 
     // MARK: Pressing
@@ -153,7 +203,7 @@ final class PressViewController: UIViewController, UITextFieldDelegate {
     private func pressNow(note: String?) {
         guard pressedRecord == nil else { return }
         view.endEditing(true)
-        guard let updated = CardStore.shared.press(id: card.id, note: note) else {
+        guard let updated = CardStore.shared.press(id: card.id, note: note, title: titleField.text) else {
             dismiss(animated: true)
             return
         }
@@ -191,7 +241,11 @@ final class PressViewController: UIViewController, UITextFieldDelegate {
     }
 
     func textFieldShouldReturn(_ textField: UITextField) -> Bool {
-        textField.resignFirstResponder()
+        if textField === titleField {
+            noteField.becomeFirstResponder()
+        } else {
+            textField.resignFirstResponder()
+        }
         return true
     }
 }

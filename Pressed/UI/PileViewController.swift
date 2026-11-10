@@ -85,9 +85,6 @@ final class PileViewController: UIViewController, UICollectionViewDelegate {
         var config = UICollectionLayoutListConfiguration(appearance: .plain)
         config.showsSeparators = false
         config.backgroundColor = .clear
-        config.leadingSwipeActionsConfigurationProvider = { [weak self] indexPath in
-            self?.leadingActions(at: indexPath)
-        }
         config.trailingSwipeActionsConfigurationProvider = { [weak self] indexPath in
             self?.trailingActions(at: indexPath)
         }
@@ -197,25 +194,6 @@ final class PileViewController: UIViewController, UICollectionViewDelegate {
         }
     }
 
-    private func rescue(id: UUID) {
-        if store.rescue(id: id) != nil {
-            Haptics.success()
-            Toast.show("Rescued. Three more days.", in: view)
-        }
-    }
-
-    private func leadingActions(at indexPath: IndexPath) -> UISwipeActionsConfiguration? {
-        guard let id = dataSource.itemIdentifier(for: indexPath),
-              let record = records[id], record.rescuedAt == nil else { return nil }
-        let action = UIContextualAction(style: .normal, title: "Rescue") { [weak self] _, _, done in
-            self?.rescue(id: id)
-            done(true)
-        }
-        action.image = UIImage(systemName: "lifepreserver")
-        action.backgroundColor = UIColor(hex: 0x2F6F6A)
-        return UISwipeActionsConfiguration(actions: [action])
-    }
-
     private func trailingActions(at indexPath: IndexPath) -> UISwipeActionsConfiguration? {
         guard let id = dataSource.itemIdentifier(for: indexPath) else { return nil }
         let action = UIContextualAction(style: .normal, title: "Let go") { [weak self] _, _, done in
@@ -236,12 +214,6 @@ final class PileViewController: UIViewController, UICollectionViewDelegate {
                 return true
             }
         ]
-        if record.rescuedAt == nil {
-            actions.append(UIAccessibilityCustomAction(name: "Rescue for three days") { [weak self] _ in
-                self?.rescue(id: record.id)
-                return true
-            })
-        }
         return actions
     }
 
@@ -268,11 +240,6 @@ final class PileViewController: UIViewController, UICollectionViewDelegate {
                     UIPasteboard.general.url = record.url
                 }
             ]
-            if record.rescuedAt == nil {
-                actions.append(UIAction(title: "Rescue for three days", image: UIImage(systemName: "lifepreserver")) { _ in
-                    self?.rescue(id: record.id)
-                })
-            }
             actions.append(UIAction(title: "Let go", image: UIImage(systemName: "wind"), attributes: .destructive) { _ in
                 self?.letGo(id: record.id)
             })

@@ -322,10 +322,10 @@ final class FireplaceView: FarewellSceneView {
     }
 
     /// Throws a card along an arc; near the fire, it goes in.
-    private func launch(_ paper: UIView, velocity: CGPoint) {
+    private func launch(_ paper: UIView, velocity: CGPoint, scripted: Bool = false) {
         let angle = homes[ObjectIdentifier(paper)]?.angle ?? 0
-        let flight = FlickFlight(view: paper, velocity: velocity, target: mouth, hitRadius: 60, assistRadius: 120,
-                                 startAngle: angle, startScale: 1.08, endScale: 0.4)
+        let flight = FlickFlight(view: paper, velocity: velocity, target: mouth, hitRadius: 66, assistRadius: 140,
+                                 startAngle: angle, startScale: 1.08, endScale: 0.4, scripted: scripted)
         flight.onHit = { [weak self] in self?.burnUp(paper) }
         flight.onMiss = { [weak self] kind, point in self?.missed(paper, kind, at: point) }
         flight.launch()
@@ -375,7 +375,7 @@ final class FireplaceView: FarewellSceneView {
 
     private func backOnPile(_ paper: UIView) {
         if sweeping {
-            launch(paper, velocity: sweepVelocity(from: paper.center))
+            launch(paper, velocity: sweepVelocity(from: paper.center), scripted: true)
         } else {
             recognizer?.candidates.append(paper)
         }
@@ -384,7 +384,7 @@ final class FireplaceView: FarewellSceneView {
     private func sweepVelocity(from point: CGPoint) -> CGPoint {
         let dx = mouth.x - point.x, dy = mouth.y - point.y
         let length = max(1, hypot(dx, dy))
-        let speed = length / FlickFlight.reach
+        let speed = FlickFlight.speed(forDistance: length)
         return CGPoint(x: dx / length * speed, y: dy / length * speed)
     }
 
@@ -448,7 +448,7 @@ final class FireplaceView: FarewellSceneView {
         for (index, paper) in remaining.enumerated() {
             after(Double(index) * 0.18) { [weak self] in
                 guard let self else { return }
-                self.launch(paper, velocity: self.sweepVelocity(from: paper.center))
+                self.launch(paper, velocity: self.sweepVelocity(from: paper.center), scripted: true)
             }
         }
         if remaining.isEmpty, inPlay == 0 { afterThrow() }

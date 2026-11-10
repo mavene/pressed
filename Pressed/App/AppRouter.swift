@@ -1,6 +1,6 @@
 import UIKit
 
-/// Turns notification taps and `pressed://` links into screens (`stack`, `card/<uuid>`).
+/// Turns notification taps and `pressed://` links into screens (`stack`, `card/<uuid>`, `card/<uuid>?from=widget`).
 @MainActor
 final class AppRouter {
     static let shared = AppRouter()
@@ -23,7 +23,12 @@ final class AppRouter {
         case "stack":
             go(.stack)
         case "card":
-            if let id = UUID(uuidString: url.lastPathComponent) { go(.card(id)) }
+            guard let id = UUID(uuidString: url.lastPathComponent) else { return }
+            // A widget tap rescues an expired card right here, before anything can sweep it. Other sources never do.
+            let fromWidget = URLComponents(url: url, resolvingAgainstBaseURL: false)?
+                .queryItems?.contains { $0.name == "from" && $0.value == "widget" } ?? false
+            if fromWidget { CardStore.shared.rescueIfExpired(id: id) }
+            go(.card(id))
         default:
             break
         }

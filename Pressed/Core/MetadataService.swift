@@ -18,16 +18,26 @@ final class MetadataService {
     private var inFlight = Set<UUID>()
     private var attempted = Set<UUID>()
 
-    /// Looks up every pending card that has no title yet. Each card is tried once per launch.
+    /// Looks up every card with no fetched title, whatever its status. Each card is tried at most once per launch,
+    /// and `MetadataRetryPolicy` caps the total and spaces the retries out.
     func enrichMissing() {
-        for record in CardStore.shared.fetchPending() where record.title == nil && !attempted.contains(record.id) {
+        for record in CardStore.shared.cardsNeedingMetadata() where !attempted.contains(record.id) {
             enrich(record)
         }
+    }
+
+    /// For the press screen: fetches now, skipping the wait between retries but not the overall cap
+    /// and not a second try in the same launch.
+    func enrichOnDemand(_ record: CardRecord) {
+        guard !attempted.contains(record.id),
+              CardStore.shared.mayFetchMetadata(id: record.id, ignoringWait: true) else { return }
+        enrich(record)
     }
 
     func enrich(_ record: CardRecord) {
         guard inFlight.insert(record.id).inserted else { return }
         attempted.insert(record.id)
+        CardStore.shared.recordMetadataAttempt(id: record.id)
         let id = record.id
         let url = record.url
         Task { @MainActor in
