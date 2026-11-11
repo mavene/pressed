@@ -13,7 +13,6 @@ final class FireplaceView: FarewellSceneView {
     private let glow = CAGradientLayer()
     private let flameGroup = CALayer()
     private let sparks = CAEmitterLayer()
-    private var wobbleBook: CALayer?
     private var built = false
 
     // Geometry shared between building and tossing.
@@ -59,8 +58,8 @@ final class FireplaceView: FarewellSceneView {
         let fx = (w - fw) / 2
         let fy = floorY - fh
 
-        buildShelf(CGRect(x: 14, y: topY, width: fx - 14 - 14, height: sceneHeight), seed: 3, tipsOver: true)
-        buildShelf(CGRect(x: fx + fw + 14, y: topY, width: w - 14 - (fx + fw + 14), height: sceneHeight), seed: 11, tipsOver: false)
+        buildShelf(CGRect(x: 14, y: topY, width: fx - 14 - 14, height: sceneHeight), seed: 3)
+        buildShelf(CGRect(x: fx + fw + 14, y: topY, width: w - 14 - (fx + fw + 14), height: sceneHeight), seed: 11)
 
         // Floor and rug.
         _ = solid(CGRect(x: 0, y: floorY, width: w, height: 5), 0x3A2A1E)
@@ -208,7 +207,7 @@ final class FireplaceView: FarewellSceneView {
         }
     }
 
-    private func buildShelf(_ rect: CGRect, seed: UInt64, tipsOver: Bool) {
+    private func buildShelf(_ rect: CGRect, seed: UInt64) {
         _ = solid(rect, 0x4A3322, radius: 3)
         let rows = 4
         let inner = rect.insetBy(dx: 5, dy: 5)
@@ -220,7 +219,6 @@ final class FireplaceView: FarewellSceneView {
             let rowTop = inner.minY + CGFloat(rowIndex) * rowH
             _ = solid(CGRect(x: inner.minX, y: rowTop + rowH - 4, width: inner.width, height: 4), 0x8B6A47)
             var x = inner.minX + 2
-            var bookIndex = 0
             while true {
                 let bw = CGFloat(rng.next(in: 7...13))
                 if x + bw > inner.maxX - 2 { break }
@@ -233,9 +231,7 @@ final class FireplaceView: FarewellSceneView {
                 book.backgroundColor = UIColor(hex: color).cgColor
                 book.cornerRadius = 1
                 sceneLayer.addSublayer(book)
-                if tipsOver, rowIndex == 1, bookIndex == 2 { wobbleBook = book }
                 x += bw + 1
-                bookIndex += 1
             }
         }
     }
@@ -434,7 +430,6 @@ final class FireplaceView: FarewellSceneView {
         recognizer?.isEnabled = false
         // Don't leave the last "1 to go." hanging while the fire settles.
         say?("Returned to the internet.")
-        after(0.5) { [weak self] in self?.tipBook() }
         after(1.6) { [weak self] in self?.finish?() }
     }
 
@@ -514,21 +509,6 @@ final class FireplaceView: FarewellSceneView {
         DispatchQueue.main.asyncAfter(deadline: .now() + 0.25) { [weak self] in
             self?.sparks.emitterCells?.first?.birthRate = 5
         }
-    }
-
-    /// One book on the shelf leans out.
-    private func tipBook() {
-        guard let book = wobbleBook else { return }
-        let lean = CASpringAnimation(keyPath: "transform.rotation.z")
-        lean.fromValue = 0
-        lean.toValue = 0.5
-        lean.mass = 1
-        lean.stiffness = 90
-        lean.damping = 6
-        lean.duration = lean.settlingDuration
-        book.transform = CATransform3DMakeRotation(0.5, 0, 0, 1)
-        book.add(lean, forKey: "lean")
-        Haptics.thunk()
     }
 }
 

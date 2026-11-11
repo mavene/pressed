@@ -3,8 +3,8 @@ import UIKit
 /// A sheet of paper that curls as its due date nears (level 0 flat, level 3 yellowed and folded).
 final class PaperCardView: UIView {
     private static let paperHex: [UInt32] = [0xFBF8F1, 0xF7EFDB, 0xF1E4C2, 0xE9D7A6]
-    private static let foldHex: [UInt32] = [0xFBF8F1, 0xE2D3AE, 0xD9C592, 0xCDB57A]
-    private static let cuts: [CGFloat] = [0, 14, 26, 38]
+    static let foldHex: [UInt32] = [0xFBF8F1, 0xE2D3AE, 0xD9C592, 0xCDB57A]
+    static let cuts: [CGFloat] = [0, 14, 26, 38]
     private static let shadowRadius: [CGFloat] = [3, 5, 8, 12]
     private static let shadowOffsetY: [CGFloat] = [2, 4, 6, 9]
     private static let shadowOpacity: [Float] = [0.14, 0.18, 0.22, 0.28]

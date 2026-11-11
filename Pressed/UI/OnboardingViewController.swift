@@ -38,13 +38,13 @@ final class OnboardingViewController: UIViewController, UIScrollViewDelegate {
         view.addSubview(scrollView)
 
         pages = [
-            makePage(illustration: makeCurlIllustration(),
+            makePage(illustration: OnboardingIllustrations.curl(),
                      title: "Links you save curl up if you ignore them.",
                      body: "Share a link to Pressed from any app. It lands on your Pile and slowly curls as its due date gets closer."),
-            makePage(illustration: makePressIllustration(),
+            makePage(illustration: OnboardingIllustrations.press(),
                      title: "Read one and press it flat to keep it forever.",
                      body: "When you finish reading, press the card. It becomes a bookmark with a wax seal, hanging on The Shelf."),
-            makePage(illustration: makeCrumbleIllustration(),
+            makePage(illustration: OnboardingIllustrations.crumble(),
                      title: "Ignore it for a week and it crumbles. No guilt.",
                      body: "Nothing piles up for ever. To save a link, tap Share in any app and choose Pressed. You may need to tap More the first time.")
         ]
@@ -164,136 +164,6 @@ final class OnboardingViewController: UIViewController, UIScrollViewDelegate {
             textStack.trailingAnchor.constraint(equalTo: page.trailingAnchor, constant: -28)
         ])
         return page
-    }
-
-    // MARK: Illustrations
-
-    /// A blank paper card with placeholder bars and a stamp.
-    private func makeMiniCard(level: Int, stamp: String, tilt: CGFloat) -> UIView {
-        let card = UIView()
-        card.translatesAutoresizingMaskIntoConstraints = false
-        let paper = PaperCardView()
-        paper.level = level
-        paper.translatesAutoresizingMaskIntoConstraints = false
-        card.addSubview(paper)
-
-        let image = UIView()
-        image.backgroundColor = level == 0 ? UIColor(hex: 0xA9BCC4) : UIColor(hex: 0xB9AE97)
-        image.layer.cornerRadius = 4
-        let barOne = UIView()
-        barOne.backgroundColor = UIColor(hex: 0xD9CFBD)
-        barOne.layer.cornerRadius = 5
-        let barTwo = UIView()
-        barTwo.backgroundColor = UIColor(hex: 0xD9CFBD)
-        barTwo.layer.cornerRadius = 5
-        let stampLabel = PaddedLabel()
-        stampLabel.text = stamp
-        stampLabel.font = Theme.mono(11, .bold, scaled: false)
-        stampLabel.textColor = Theme.stampRed
-        stampLabel.layer.borderColor = Theme.stampRed.cgColor
-        stampLabel.layer.borderWidth = 1.5
-        stampLabel.layer.cornerRadius = 3
-
-        let stack = UIStackView(arrangedSubviews: [image, barOne, barTwo, stampLabel])
-        stack.axis = .vertical
-        stack.spacing = 10
-        stack.alignment = .leading
-        stack.translatesAutoresizingMaskIntoConstraints = false
-        card.addSubview(stack)
-
-        NSLayoutConstraint.activate([
-            card.widthAnchor.constraint(equalToConstant: 190),
-            paper.topAnchor.constraint(equalTo: card.topAnchor),
-            paper.bottomAnchor.constraint(equalTo: card.bottomAnchor),
-            paper.leadingAnchor.constraint(equalTo: card.leadingAnchor),
-            paper.trailingAnchor.constraint(equalTo: card.trailingAnchor),
-            stack.topAnchor.constraint(equalTo: card.topAnchor, constant: 14),
-            stack.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: -14),
-            stack.leadingAnchor.constraint(equalTo: card.leadingAnchor, constant: 14),
-            stack.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: -14),
-            image.widthAnchor.constraint(equalTo: stack.widthAnchor),
-            image.heightAnchor.constraint(equalToConstant: 66),
-            barOne.widthAnchor.constraint(equalTo: stack.widthAnchor, multiplier: 0.85),
-            barOne.heightAnchor.constraint(equalToConstant: 10),
-            barTwo.widthAnchor.constraint(equalTo: stack.widthAnchor, multiplier: 0.6),
-            barTwo.heightAnchor.constraint(equalToConstant: 10)
-        ])
-
-        var transform = CATransform3DIdentity
-        transform.m34 = -1.0 / 600
-        transform = CATransform3DRotate(transform, CGFloat(level) * 4 * .pi / 180, 1, 0, 0)
-        transform = CATransform3DRotate(transform, tilt * .pi / 180, 0, 0, 1)
-        card.layer.transform = transform
-        card.isAccessibilityElement = false
-        return card
-    }
-
-    private func makeCurlIllustration() -> UIView {
-        let container = UIView()
-        let flat = makeMiniCard(level: 0, stamp: "DUE IN 7 DAYS", tilt: -6)
-        let curled = makeMiniCard(level: 3, stamp: "DUE TOMORROW", tilt: 6)
-        container.addSubview(flat)
-        container.addSubview(curled)
-        NSLayoutConstraint.activate([
-            flat.leadingAnchor.constraint(equalTo: container.leadingAnchor),
-            flat.topAnchor.constraint(equalTo: container.topAnchor, constant: 40),
-            curled.trailingAnchor.constraint(equalTo: container.trailingAnchor),
-            curled.topAnchor.constraint(equalTo: container.topAnchor, constant: 90)
-        ])
-        container.isAccessibilityElement = true
-        container.accessibilityLabel = "A flat card next to a curled, yellowed card"
-        return container
-    }
-
-    private func makePressIllustration() -> UIView {
-        let container = UIView()
-        let card = makeMiniCard(level: 0, stamp: "PRESSED", tilt: -3)
-        let seal = WaxSealView(frame: .zero)
-        seal.configure(finish: .fresh, seed: 7)
-        seal.translatesAutoresizingMaskIntoConstraints = false
-        container.addSubview(card)
-        container.addSubview(seal)
-        NSLayoutConstraint.activate([
-            card.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-            card.topAnchor.constraint(equalTo: container.topAnchor, constant: 50),
-            seal.widthAnchor.constraint(equalToConstant: 92),
-            seal.heightAnchor.constraint(equalToConstant: 92),
-            seal.trailingAnchor.constraint(equalTo: card.trailingAnchor, constant: 24),
-            seal.bottomAnchor.constraint(equalTo: card.bottomAnchor, constant: 28)
-        ])
-        container.isAccessibilityElement = true
-        container.accessibilityLabel = "A card with a gold wax seal"
-        return container
-    }
-
-    private func makeCrumbleIllustration() -> UIView {
-        let container = UIView()
-        let card = makeMiniCard(level: 3, stamp: "DUE TODAY", tilt: 3)
-        container.addSubview(card)
-        NSLayoutConstraint.activate([
-            card.centerXAnchor.constraint(equalTo: container.centerXAnchor),
-            card.topAnchor.constraint(equalTo: container.topAnchor, constant: 30)
-        ])
-        let flakes: [(CGFloat, CGFloat, CGFloat)] = [
-            (-70, 215, 7), (-30, 235, 5), (20, 222, 8), (60, 245, 5), (90, 228, 6), (-5, 255, 4)
-        ]
-        for (dx, y, size) in flakes {
-            let flake = UIView()
-            flake.backgroundColor = UIColor(hex: 0xE9D7A6)
-            flake.layer.cornerRadius = 1
-            flake.transform = CGAffineTransform(rotationAngle: dx / 40)
-            flake.translatesAutoresizingMaskIntoConstraints = false
-            container.addSubview(flake)
-            NSLayoutConstraint.activate([
-                flake.widthAnchor.constraint(equalToConstant: size),
-                flake.heightAnchor.constraint(equalToConstant: size),
-                flake.centerXAnchor.constraint(equalTo: container.centerXAnchor, constant: dx),
-                flake.topAnchor.constraint(equalTo: container.topAnchor, constant: y)
-            ])
-        }
-        container.isAccessibilityElement = true
-        container.accessibilityLabel = "A yellowed card turning into flakes of paper"
-        return container
     }
 }
 
