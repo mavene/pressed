@@ -439,6 +439,37 @@ final class FocusRulesTests: XCTestCase {
         XCTAssertTrue(late)
     }
 
+    func testLongLinksGetALongerGraceWindowThanTheRest() {
+        XCTAssertEqual(FocusRules.graceMinutes(longLink: true), 60)
+        XCTAssertEqual(FocusRules.graceMinutes(longLink: false), FocusRules.bypassMinutes)
+        XCTAssertEqual(CardKind.allCases.filter(\.isLongForm), [.video, .podcast])
+    }
+
+    func testNoGraceWindowIsShorterThanDeviceActivityAllows() {
+        for long in [true, false] {
+            XCTAssertGreaterThanOrEqual(FocusRules.graceMinutes(longLink: long), 15)
+        }
+    }
+
+    func testGraceWindowHoldsThenLocksAgainIfNothingWasPressed() {
+        let opened = date(2026, 11, 10, 20, 0)
+        let until = opened.addingTimeInterval(TimeInterval(FocusRules.graceMinutes(longLink: true) * 60))
+        XCTAssertFalse(locked(now: date(2026, 11, 10, 20, 59), bypassUntil: until))
+        XCTAssertTrue(locked(now: date(2026, 11, 10, 21, 0), bypassUntil: until))
+    }
+
+    func testPressInsideGraceWindowKeepsTheDayUnlocked() {
+        let today = FocusRules.dayKey(date(2026, 11, 10), calendar: calendar)
+        XCTAssertFalse(locked(now: date(2026, 11, 10, 22, 30), lastPressedDay: today, bypassUntil: nil))
+    }
+
+    func testBypassWindowEndsExactlyAtItsDeadline() {
+        let until = date(2026, 11, 10, 21, 0)
+        XCTAssertTrue(FocusRules.isBypassed(until: until, now: date(2026, 11, 10, 20, 59)))
+        XCTAssertFalse(FocusRules.isBypassed(until: until, now: until))
+        XCTAssertFalse(FocusRules.isBypassed(until: nil, now: until))
+    }
+
     func testDayKeyUsesCalendarDay() {
         XCTAssertEqual(FocusRules.dayKey(date(2026, 1, 5), calendar: calendar), "2026-01-05")
     }
@@ -451,5 +482,26 @@ final class ReaderRulesTests: XCTestCase {
         XCTAssertTrue(ReaderCoordinator.countsAsRead(loaded: true, seconds: 120))
         XCTAssertFalse(ReaderCoordinator.countsAsRead(loaded: true, seconds: 4.9))
         XCTAssertFalse(ReaderCoordinator.countsAsRead(loaded: false, seconds: 120))
+    }
+
+    func testComingBackFromAHandoffShowsThePressSheetOnlyAfterRealTimeAway() {
+        let minimum = ReaderCoordinator.minimumHandoffSeconds
+        XCTAssertTrue(ReaderCoordinator.returnedFromHandoff(handoffAllowed: true, awaySeconds: minimum))
+        XCTAssertFalse(ReaderCoordinator.returnedFromHandoff(handoffAllowed: true, awaySeconds: minimum - 0.1))
+        // Ordinary links never take over the return trip.
+        XCTAssertFalse(ReaderCoordinator.returnedFromHandoff(handoffAllowed: false, awaySeconds: 600))
+    }
+
+    func testAHandoffToAnotherAppCountsWithoutALoadedPage() {
+        XCTAssertTrue(ReaderCoordinator.countsAsRead(loaded: false, seconds: 600, handoffAllowed: true))
+        // Still not a read if the user came straight back.
+        let minimum = ReaderCoordinator.minimumHandoffSeconds
+        XCTAssertFalse(ReaderCoordinator.countsAsRead(loaded: false, seconds: minimum - 0.1, handoffAllowed: true))
+        XCTAssertTrue(ReaderCoordinator.countsAsRead(loaded: false, seconds: minimum, handoffAllowed: true))
+        // A page that did load keeps the ordinary 5 seconds, unless it handed off and the handoff minimum is lower.
+        XCTAssertTrue(ReaderCoordinator.countsAsRead(loaded: true, seconds: 5, handoffAllowed: true))
+        XCTAssertFalse(ReaderCoordinator.countsAsRead(loaded: true, seconds: 0, handoffAllowed: false))
+        let handoffLoaded = min(ReaderCoordinator.minimumReadSeconds, minimum)
+        XCTAssertTrue(ReaderCoordinator.countsAsRead(loaded: true, seconds: handoffLoaded, handoffAllowed: true))
     }
 }

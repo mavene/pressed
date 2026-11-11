@@ -56,6 +56,8 @@ enum FocusEngine {
     /// Whether the lock should be on right now, without touching the shield.
     static func shouldLockNow(now: Date = Date(), calendar: Calendar = .current) -> Bool {
         let hasSelection = hasSelection
+        // A bypass ("Not now", or the window after opening a card) beats everything, the debug lock included.
+        guard !FocusRules.isBypassed(until: FocusStore.bypassUntil, now: now) else { return false }
         return FocusStore.enabled && hasSelection && (
             FocusStore.debugForced
             || FocusRules.shouldBeLocked(

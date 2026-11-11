@@ -16,7 +16,8 @@ enum FocusController {
 
     /// Brings the shield and the daily schedule in line with the current settings.
     static func sync(now: Date = Date()) {
-        FocusStore.hasPending = !CardStore.shared.fetchPending().isEmpty
+        // A card past its due date is only waiting to be swept, so it isn't something to press.
+        FocusStore.hasPending = CardStore.shared.fetchPending().contains { $0.dueAt > now }
         // If the user revoked access in Settings, the shield can no longer be managed.
         if FocusStore.enabled && !isAuthorized {
             FocusStore.enabled = false
@@ -37,11 +38,25 @@ enum FocusController {
         sync(now: now)
     }
 
-    /// Lifts the lock for 15 minutes, the same as "Not now" on the shield. The monitor re-locks afterwards.
-    static func grantBypass(now: Date = Date()) {
-        FocusStore.bypassUntil = now.addingTimeInterval(TimeInterval(FocusRules.bypassMinutes * 60))
-        FocusSchedule.startBypass(now: now)
+    /// Lifts the lock for a while, 15 minutes by default like "Not now" on the shield. The monitor re-locks afterwards.
+    static func grantBypass(minutes: Int = FocusRules.bypassMinutes, now: Date = Date()) {
+        FocusStore.bypassUntil = now.addingTimeInterval(TimeInterval(minutes * 60))
+        FocusSchedule.startBypass(minutes: minutes, now: now)
         FocusEngine.evaluate(now: now)
+    }
+
+    /// Called as a card's link is about to open. If the lock is on, it is lifted first so the link can hand off to an
+    /// app that is locked; the user presses when they are back. A press ends the lock for the day, otherwise the
+    /// monitor locks again when the window ends. Opening another card during a window doesn't extend it.
+    /// Returns true when the link may hand off to another app (the lock was on, or a window is already running).
+    @discardableResult
+    static func openingLink(of kind: CardKind, now: Date = Date()) -> Bool {
+        if isLockedNow {
+            grantBypass(minutes: FocusRules.graceMinutes(longLink: kind.isLongForm), now: now)
+            return true
+        }
+        if let until = FocusStore.bypassUntil, until > now { return true }
+        return false
     }
 
     static var isLockedNow: Bool { FocusEngine.shouldLockNow() }
@@ -87,6 +102,11 @@ enum FocusController {
         FocusEngine.evaluate()
     }
     #endif
+}
+
+extension CardKind {
+    /// Podcasts and videos are listened to or watched in another app, so they need a longer unlock window.
+    var isLongForm: Bool { self == .podcast || self == .video }
 }
 
 /// Keeps Focus mode in step when cards change or the app comes back to the front.
