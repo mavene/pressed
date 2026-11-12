@@ -1,0 +1,19 @@
+project.yml
+  s_d959039120c485::t_244064d074f17b 40
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "f7084b8a12f10bc43d06e4ae6ea14a3861737ae8",
+  "prompts": {},
+  "sessions": {
+    "s_d959039120c485": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "03cb2094-c1ed-4e76-8046-06e30b42da25",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Dian Maisara <dian.maisara@foodpanda.com>"
+    }
+  }
+}
