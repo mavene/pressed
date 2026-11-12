@@ -1,0 +1,46 @@
+Pressed/Core/FocusController.swift
+  s_3d6f2ede990252::t_9652e84fca70d9 55-61,107-109
+  s_3d6f2ede990252::t_63196e714fb85f 19-20,41-44,48-54,110-111
+PressedTests/PressedTests.swift
+  s_3d6f2ede990252::t_6898f778871e41 491-493,501-503
+  s_3d6f2ede990252::t_c10bc33633d001 462,467,490,494-497,509
+  s_3d6f2ede990252::t_034894fb2eb5d8 469-475
+  s_3d6f2ede990252::t_a34975d66957ba 504,506-508
+  s_3d6f2ede990252::t_22e8467a71a565 505
+  s_3d6f2ede990252::t_9652e84fca70d9 446-459
+  s_3d6f2ede990252::t_9256957d4c2c64 445,460-461,463-466,468,489,498-500
+Shared/FocusRules.swift
+  s_3d6f2ede990252::t_034894fb2eb5d8 15,23-27,40
+  s_3d6f2ede990252::t_9652e84fca70d9 13-14
+  s_3d6f2ede990252::t_9808a14da68163 8-12
+Shared/FocusEngine.swift
+  s_3d6f2ede990252::t_034894fb2eb5d8 59-60
+Pressed/UI/ReaderCoordinator.swift
+  s_3d6f2ede990252::t_60233ee6118251 42-47,79,99,125-127,129-131,150,180-182,184-187,190-195,198-200,205,207-210,214-220
+  s_3d6f2ede990252::t_41cefabcb036ae 76,81-90,117-121,124,183
+  s_3d6f2ede990252::t_22e8467a71a565 15,17-19,26-30,32
+  s_3d6f2ede990252::t_c10bc33633d001 5-6,31,40-41,49,51,54,59-60,65,73,77-78,100-104,109-116,122,151,153-156,221-237
+  s_3d6f2ede990252::t_71b3f66c50daeb 128,133-149,240-243
+  s_3d6f2ede990252::t_6898f778871e41 16
+  s_3d6f2ede990252::t_49159b73b431bd 3,10,75,105-108,123
+  s_3d6f2ede990252::t_a34975d66957ba 21-25
+  s_3d6f2ede990252::t_ee52e0ba5ab4a1 80,91-98
+  s_3d6f2ede990252::t_bbb6ec252f7cd8 48,132,196-197,201-204,211-213
+  s_3d6f2ede990252::t_26a49ea81028b6 20,38,152
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "6d8bd6202e7ff72db229a9d451fe4c63020e83b8",
+  "prompts": {},
+  "sessions": {
+    "s_3d6f2ede990252": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "7d5de5a0-8d6f-4dbc-b9a2-adef18cfc11b",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Dian Maisara <dian.maisara@foodpanda.com>"
+    }
+  }
+}
