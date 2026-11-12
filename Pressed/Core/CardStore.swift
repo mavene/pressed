@@ -239,16 +239,8 @@ final class CardStore {
 /// Helpers for trying the curl and crumble without waiting a week.
 extension CardStore {
     func debugAddSamples() {
-        let samples = [
-            "https://en.wikipedia.org/wiki/Paper",
-            "https://www.youtube.com/watch?v=jNQXAC9IVRw",
-            "https://www.bbcgoodfood.com/recipes/easy-focaccia",
-            "https://en.wikipedia.org/wiki/Bookmark",
-            "https://en.wikipedia.org/wiki/Origami",
-            "https://podcasts.apple.com/us/podcast/99-percent-invisible/id394775318"
-        ]
-        for (index, text) in samples.enumerated() {
-            guard let url = URL(string: text) else { continue }
+        for (index, sample) in DebugSamples.all.enumerated() {
+            guard let url = URL(string: sample.url) else { continue }
             add(url: url, savedAt: Date().addingTimeInterval(-Double(index) * 1.4 * 86_400))
         }
     }

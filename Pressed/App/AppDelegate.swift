@@ -6,6 +6,9 @@ final class AppDelegate: UIResponder, UIApplicationDelegate, UNUserNotificationC
 
     func application(_ application: UIApplication,
                      didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
+        #if DEBUG
+        MainActor.assumeIsolated { UITestSupport.prepare() }
+        #endif
         UNUserNotificationCenter.current().delegate = self
         BackgroundRefresh.register()
         return true

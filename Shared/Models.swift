@@ -3,17 +3,16 @@ import Foundation
 // Plain value types (Foundation only).
 
 enum CardKind: Int16, CaseIterable {
-    case article = 0, video, recipe, podcast, tweet, product, place
+    // The raw values are what is stored on disk, so they are never renumbered or reused. 2 (recipe),
+    // 5 (product) and 6 (place) were retired; rows saved with them still load, as articles (see `Card.record`).
+    case article = 0, video = 1, podcast = 3, tweet = 4
 
     var label: String {
         switch self {
         case .article: return "ARTICLE"
         case .video: return "VIDEO"
-        case .recipe: return "RECIPE"
         case .podcast: return "PODCAST"
         case .tweet: return "POST"
-        case .product: return "PRODUCT"
-        case .place: return "PLACE"
         }
     }
 }

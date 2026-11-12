@@ -4,7 +4,7 @@ import Foundation
 enum AppGroup {
     /// Read from Info.plist (`PressedAppGroup`) so project.yml is the only place to edit.
     static var identifier: String {
-        (Bundle.main.object(forInfoDictionaryKey: "PressedAppGroup") as? String) ?? "group.com.example.pressed"
+        (Bundle.main.object(forInfoDictionaryKey: "PressedAppGroup") as? String) ?? "group.com.paradimn.pressed"
     }
 
     static var containerURL: URL? {

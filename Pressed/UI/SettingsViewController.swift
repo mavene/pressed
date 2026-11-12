@@ -162,6 +162,7 @@ final class SettingsViewController: UIViewController, UITableViewDataSource, UIT
             cell.selectionStyle = .default
             return cell
 
+        #if DEBUG
         case (.help, 2):
             content.text = "Add sample links (debug build only)"
             content.textProperties.color = Theme.inkQuiet
@@ -183,11 +184,14 @@ final class SettingsViewController: UIViewController, UITableViewDataSource, UIT
             cell.selectionStyle = .default
             return cell
 
-        default:
+        case (.help, _):
             content.text = "Preview: many links expire (debug build only)"
             content.textProperties.color = Theme.inkQuiet
             cell.contentConfiguration = content
             cell.selectionStyle = .default
+            return cell
+        #endif
+        default:
             return cell
         }
     }

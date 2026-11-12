@@ -3,7 +3,7 @@ import BackgroundTasks
 /// Keeps the nudge text fresh when the app has not been opened for a while.
 enum BackgroundRefresh {
     static var identifier: String {
-        (Bundle.main.bundleIdentifier ?? "com.example.pressed") + ".refresh"
+        (Bundle.main.bundleIdentifier ?? "com.paradimn.pressed") + ".refresh"
     }
 
     /// Call before the app finishes launching.

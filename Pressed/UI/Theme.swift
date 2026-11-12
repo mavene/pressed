@@ -67,11 +67,8 @@ extension CardKind {
         switch self {
         case .article: return "doc.text"
         case .video: return "play.fill"
-        case .recipe: return "fork.knife"
         case .podcast: return "headphones"
         case .tweet: return "quote.bubble"
-        case .product: return "tag"
-        case .place: return "mappin.and.ellipse"
         }
     }
 
@@ -80,11 +77,8 @@ extension CardKind {
         switch self {
         case .article: return UIColor(hex: 0xA9BCC4)
         case .video: return UIColor(hex: 0x2E2924)
-        case .recipe: return UIColor(hex: 0xD69A5C)
         case .podcast: return UIColor(hex: 0xB8C9D1)
         case .tweet: return UIColor(hex: 0xF3DF8E)
-        case .product: return UIColor(hex: 0xC9B08A)
-        case .place: return UIColor(hex: 0xE0B9A0)
         }
     }
 

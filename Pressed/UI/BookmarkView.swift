@@ -75,10 +75,6 @@ final class BookmarkView: UIView {
             return Style(size: CGSize(width: 76, height: 112),
                          background: UIColor(hex: 0x2A2622), text: UIColor(hex: 0xF7EFDB),
                          corner: 3, titleTop: 36, titleInset: 8, lines: 3)
-        case .recipe:
-            return Style(size: CGSize(width: 80, height: 108),
-                         background: UIColor(hex: 0xF2E1C1), text: Theme.ink,
-                         corner: 3, titleTop: 30, titleInset: 8, lines: 2)
         case .podcast:
             return Style(size: CGSize(width: 84, height: 140),
                          background: UIColor(hex: 0x39424D), text: UIColor(hex: 0xF3ECDD),
@@ -87,14 +83,6 @@ final class BookmarkView: UIView {
             return Style(size: CGSize(width: 76, height: 84),
                          background: UIColor(hex: 0xF7E9A8), text: Theme.ink,
                          corner: 0, titleTop: 12, titleInset: 8, lines: 2)
-        case .product:
-            return Style(size: CGSize(width: 68, height: 124),
-                         background: UIColor(hex: 0xEFE4CC), text: Theme.ink,
-                         corner: 6, titleTop: 26, titleInset: 8, lines: 4)
-        case .place:
-            return Style(size: CGSize(width: 90, height: 86),
-                         background: UIColor(hex: 0xE7D2C0), text: Theme.ink,
-                         corner: 3, titleTop: 28, titleInset: 8, lines: 2)
         }
     }
 
@@ -127,7 +115,7 @@ final class BookmarkView: UIView {
 
     private func addDecorations(for kind: CardKind) {
         switch kind {
-        case .article, .product:
+        case .article:
             let hole = UIView()
             hole.backgroundColor = Theme.desk
             hole.layer.cornerRadius = 4
@@ -156,19 +144,6 @@ final class BookmarkView: UIView {
                 chalk.topAnchor.constraint(equalTo: topAnchor, constant: 32),
                 chalk.heightAnchor.constraint(equalToConstant: 1)
             ])
-        case .recipe:
-            let lines = RuledLinesView()
-            addDecoration(lines)
-            pin(lines)
-            let tag = UILabel()
-            tag.text = "RECIPE"
-            tag.font = Theme.mono(9.5, .bold, scaled: false)
-            tag.textColor = UIColor(hex: 0x6A2A1E)
-            addDecoration(tag)
-            NSLayoutConstraint.activate([
-                tag.centerXAnchor.constraint(equalTo: centerXAnchor),
-                tag.topAnchor.constraint(equalTo: topAnchor, constant: 9)
-            ])
         case .podcast:
             let record = RecordDiscView()
             addDecoration(record)
@@ -180,18 +155,6 @@ final class BookmarkView: UIView {
             ])
         case .tweet:
             break
-        case .place:
-            let postmark = UIView()
-            postmark.layer.cornerRadius = 11
-            postmark.layer.borderWidth = 1.5
-            postmark.layer.borderColor = Theme.stampRed.withAlphaComponent(0.55).cgColor
-            addDecoration(postmark)
-            NSLayoutConstraint.activate([
-                postmark.widthAnchor.constraint(equalToConstant: 22),
-                postmark.heightAnchor.constraint(equalToConstant: 22),
-                postmark.topAnchor.constraint(equalTo: topAnchor, constant: 6),
-                postmark.trailingAnchor.constraint(equalTo: trailingAnchor, constant: -6)
-            ])
         }
     }
 
@@ -283,30 +246,3 @@ private final class RecordDiscView: UIView {
     }
 }
 
-/// Faint red ruled lines, like an index card.
-private final class RuledLinesView: UIView {
-    private let lines = CAShapeLayer()
-
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-        isUserInteractionEnabled = false
-        lines.strokeColor = UIColor(hex: 0x9E2F24, alpha: 0.22).cgColor
-        lines.lineWidth = 1
-        layer.addSublayer(lines)
-    }
-
-    required init?(coder: NSCoder) { fatalError("init(coder:) is not used") }
-
-    override func layoutSubviews() {
-        super.layoutSubviews()
-        let path = UIBezierPath()
-        var y: CGFloat = 24
-        while y < bounds.height - 4 {
-            path.move(to: CGPoint(x: 0, y: y))
-            path.addLine(to: CGPoint(x: bounds.width, y: y))
-            y += 16
-        }
-        lines.frame = bounds
-        lines.path = path.cgPath
-    }
-}

@@ -5,7 +5,6 @@ struct PageInfo: Equatable {
     var title: String?
     var siteName: String?
     var imageURL: URL?
-    var isRecipe: Bool
     /// From video duration meta tags (seconds rounded to minutes).
     var durationMinutes: Int?
     /// From visible text length, at about 220 words per minute. Nil for short pages.
@@ -37,7 +36,6 @@ enum PageParser {
             title: title.map { decode($0).trimmingCharacters(in: .whitespacesAndNewlines) },
             siteName: siteName.map { decode($0) },
             imageURL: image,
-            isRecipe: hasRecipeJSONLD(in: head),
             durationMinutes: durationMinutes(from: metas),
             readMinutes: readMinutes(in: head)
         )
@@ -84,43 +82,6 @@ enum PageParser {
         let text = decode(ns.substring(with: match.range(at: 1)))
             .trimmingCharacters(in: .whitespacesAndNewlines)
         return text.isEmpty ? nil : text
-    }
-
-    // MARK: Recipe detection
-
-    static func hasRecipeJSONLD(in html: String) -> Bool {
-        guard let regex = try? NSRegularExpression(
-            pattern: "<script[^>]*type\\s*=\\s*[\"']application/ld\\+json[\"'][^>]*>(.*?)</script>",
-            options: [.caseInsensitive, .dotMatchesLineSeparators]) else {
-            return false
-        }
-        let ns = html as NSString
-        for match in regex.matches(in: html, range: NSRange(location: 0, length: ns.length)) {
-            guard match.range(at: 1).location != NSNotFound else { continue }
-            let body = ns.substring(with: match.range(at: 1))
-            guard let data = body.data(using: .utf8),
-                  let json = try? JSONSerialization.jsonObject(with: data, options: [.fragmentsAllowed]) else {
-                continue
-            }
-            if containsRecipe(json) { return true }
-        }
-        return false
-    }
-
-    static func containsRecipe(_ value: Any) -> Bool {
-        if let dict = value as? [String: Any] {
-            if let type = dict["@type"] {
-                if let single = type as? String, single.lowercased() == "recipe" { return true }
-                if let many = type as? [Any], many.contains(where: { ($0 as? String)?.lowercased() == "recipe" }) {
-                    return true
-                }
-            }
-            return dict.values.contains(where: { containsRecipe($0) })
-        }
-        if let array = value as? [Any] {
-            return array.contains(where: { containsRecipe($0) })
-        }
-        return false
     }
 
     // MARK: Time estimates

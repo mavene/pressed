@@ -108,7 +108,7 @@ enum FinishRules {
 // MARK: - Kind detection
 
 enum KindDetector {
-    static func detect(url: URL, isRecipePage: Bool = false) -> CardKind {
+    static func detect(url: URL) -> CardKind {
         var host = (url.host ?? "").lowercased()
         if host.hasPrefix("www.") { host.removeFirst(4) }
         let path = url.path.lowercased()
@@ -126,22 +126,10 @@ enum KindDetector {
                           "instagram.com", "reddit.com", "mastodon.social"]) {
             return .tweet
         }
-        if isAmazon(host) || matches(host, ["etsy.com", "ebay.com"]) {
-            return .product
-        }
-        if matches(host, ["maps.apple.com", "yelp.com", "tripadvisor.com"])
-            || (host == "google.com" && path.hasPrefix("/maps")) {
-            return .place
-        }
-        if isRecipePage { return .recipe }
         return .article
     }
 
     private static func matches(_ host: String, _ domains: [String]) -> Bool {
         domains.contains { host == $0 || host.hasSuffix("." + $0) }
-    }
-
-    private static func isAmazon(_ host: String) -> Bool {
-        host.hasPrefix("amazon.") || host.contains(".amazon.")
     }
 }

@@ -55,7 +55,13 @@ extension Card {
 }
 
 final class PersistenceController {
+    #if DEBUG
+    /// UI tests (`-uitest`) get a throwaway in-memory store so they never touch real saved links.
+    /// (Also compiled into the widget, so this cannot call into app-only code.)
+    static let shared = PersistenceController(inMemory: ProcessInfo.processInfo.arguments.contains("-uitest"))
+    #else
     static let shared = PersistenceController()
+    #endif
 
     /// Built once per process. Building it twice makes Core Data complain about duplicate entities.
     private static let model: NSManagedObjectModel = makeModel()

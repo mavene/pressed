@@ -46,9 +46,9 @@ final class PileViewController: UIViewController, UICollectionViewDelegate {
         subtitleLabel.textColor = Theme.inkQuiet
         subtitleLabel.adjustsFontForContentSizeCategory = true
 
-        let titleStack = UIStackView(arrangedSubviews: [titleLabel, subtitleLabel])
-        titleStack.axis = .vertical
-        titleStack.spacing = 4
+        // The subtitle sits under the whole row, not beside the buttons, so it gets the full width
+        // and "6 waiting \u{00B7} most curled first" is not cut off.
+        subtitleLabel.numberOfLines = 0
 
         let stackButton = makeCircleButton(symbol: "moon.stars", label: "Tonight\u{2019}s stack")
         stackButton.addAction(UIAction { _ in
@@ -64,9 +64,13 @@ final class PileViewController: UIViewController, UICollectionViewDelegate {
         buttons.axis = .horizontal
         buttons.spacing = 10
 
-        let header = UIStackView(arrangedSubviews: [titleStack, UIView(), buttons])
-        header.axis = .horizontal
-        header.alignment = .top
+        let titleRow = UIStackView(arrangedSubviews: [titleLabel, UIView(), buttons])
+        titleRow.axis = .horizontal
+        titleRow.alignment = .top
+
+        let header = UIStackView(arrangedSubviews: [titleRow, subtitleLabel])
+        header.axis = .vertical
+        header.spacing = 4
         header.translatesAutoresizingMaskIntoConstraints = false
         view.addSubview(header)
         NSLayoutConstraint.activate([

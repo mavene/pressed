@@ -39,14 +39,14 @@ final class OnboardingViewController: UIViewController, UIScrollViewDelegate {
 
         pages = [
             makePage(illustration: OnboardingIllustrations.curl(),
-                     title: "Links you save curl up if you ignore them.",
-                     body: "Share a link to Pressed from any app. It lands on your Pile and slowly curls as its due date gets closer."),
+                     title: "Read it or lose it.",
+                     body: "Links you save curl up as their deadline closes in. Tap Share, pick Pressed (tap More the first time), and it lands on your Pile."),
             makePage(illustration: OnboardingIllustrations.press(),
                      title: "Read one and press it flat to keep it forever.",
                      body: "When you finish reading, press the card. It becomes a bookmark with a wax seal, hanging on The Shelf."),
             makePage(illustration: OnboardingIllustrations.crumble(),
-                     title: "Ignore it for a week and it crumbles. No guilt.",
-                     body: "Nothing piles up for ever. To save a link, tap Share in any app and choose Pressed. You may need to tap More the first time.")
+                     title: "Wait too long and it's toast.",
+                     body: "Nothing lasts for ever. Not even your reading list. Anything you haven't read within 3, 7 or 14 days crumbles away. No pressure. (Some.)")
         ]
         let pageStack = UIStackView(arrangedSubviews: pages)
         pageStack.axis = .horizontal

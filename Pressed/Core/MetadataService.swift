@@ -73,7 +73,7 @@ final class MetadataService {
             }.value
         }
 
-        let kind = KindDetector.detect(url: url, isRecipePage: info?.isRecipe ?? false)
+        let kind = KindDetector.detect(url: url)
         let minutes: Int?
         switch kind {
         case .video, .podcast: minutes = info?.durationMinutes
