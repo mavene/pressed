@@ -25,12 +25,14 @@ enum WidgetData {
     static func pending() -> [WidgetCard] {
         let context = PersistenceController.shared.container.newBackgroundContext()
         var result: [WidgetCard] = []
+        var knownURLs = Set<String>()
         context.performAndWait {
             let request = NSFetchRequest<Card>(entityName: "Card")
             request.predicate = NSPredicate(format: "statusRaw == %@", NSNumber(value: CardStatus.pending.rawValue))
             request.sortDescriptors = [NSSortDescriptor(key: "dueAt", ascending: true)]
             let cards = (try? context.fetch(request)) ?? []
             for card in cards {
+                if let known = card.urlString { knownURLs.insert(known) }
                 guard let id = card.id,
                       let urlString = card.urlString,
                       let url = URL(string: urlString),
@@ -47,7 +49,32 @@ enum WidgetData {
                     kindLine: record.kindLine, savedAt: savedAt, dueAt: dueAt))
             }
         }
-        return result
+        // The app only imports shared links when it opens, so show the ones still waiting in the Inbox too.
+        result += unimportedLinks(excluding: knownURLs)
+        return result.sorted { $0.dueAt < $1.dueAt }
+    }
+
+    /// Links saved from the Share sheet that the app has not turned into cards yet. They get the same
+    /// deadline the app will give them, and the host as a title until the app fetches the real one.
+    private static func unimportedLinks(excluding known: Set<String>) -> [WidgetCard] {
+        let stored = AppGroup.defaults.integer(forKey: "shelfLifeDays")
+        let days = [3, 7, 14].contains(stored) ? stored : 7
+        var seen = known
+        var cards: [WidgetCard] = []
+        for entry in Inbox.readAll() {
+            guard let url = URL(string: entry.item.urlString),
+                  seen.insert(url.absoluteString).inserted else { continue }
+            let dueAt = ExpiryRules.dueDate(from: entry.item.savedAt, addingDays: days)
+            let record = CardRecord(
+                id: entry.item.id, url: url, title: nil, siteName: nil, imageData: nil,
+                kind: KindDetector.detect(url: url), estMinutes: nil,
+                savedAt: entry.item.savedAt, dueAt: dueAt, status: .pending, pressedAt: nil, crumbledAt: nil,
+                rescuedAt: nil, note: nil, finish: .none, sealSeed: entry.item.sealSeed)
+            cards.append(WidgetCard(
+                id: entry.item.id, title: record.displayTitle, site: record.displaySite,
+                kindLine: record.kindLine, savedAt: entry.item.savedAt, dueAt: dueAt))
+        }
+        return cards
     }
 }
 

@@ -7,17 +7,16 @@ import Foundation
 ///     -uitest-onboarding   with -uitest: show the first-launch pages
 ///     -uitest-seed         with -uitest: one pending card of every kind (see `seedCards`)
 ///     -uitest-share <url>  with -uitest: queue the link exactly as the share extension would
+///     -promoContent        with the seeds and screenshot scenes: invented links and artwork, nothing real
 enum UITestSupport {
     static var isActive: Bool { ProcessInfo.processInfo.arguments.contains("-uitest") }
 
     /// One card per kind, oldest first, so "most curled first" order is the order listed here.
     /// `UITestSeed` in the UI test bundle mirrors this list.
-    static let seedCards: [(sample: DebugSamples.Link, daysAgo: Int)] = [
-        (DebugSamples.article, 3),
-        (DebugSamples.video, 2),
-        (DebugSamples.podcast, 1),
-        (DebugSamples.post, 0)
-    ]
+    /// With `-promoContent` these are the invented marketing links instead of the real ones.
+    static var seedCards: [(sample: DebugSamples.Link, daysAgo: Int)] {
+        [(ActiveSamples.article, 3), (ActiveSamples.video, 2), (ActiveSamples.podcast, 1), (ActiveSamples.post, 0)]
+    }
 
     @MainActor
     static func prepare() {
@@ -48,7 +47,8 @@ enum UITestSupport {
                     url: url, savedAt: now.addingTimeInterval(-Double(card.daysAgo) * 86_400)) else { continue }
             CardStore.shared.updateMetadata(
                 id: record.id,
-                result: MetadataResult(title: sample.title, siteName: sample.site, imageData: nil,
+                result: MetadataResult(title: sample.title, siteName: sample.site,
+                                       imageData: PromoSamples.isActive ? PromoSamples.art(for: sample.url) : nil,
                                        kind: sample.kind, estMinutes: sample.minutes))
         }
     }

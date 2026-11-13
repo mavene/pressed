@@ -1,5 +1,6 @@
 import UIKit
 import UniformTypeIdentifiers
+import WidgetKit
 
 /// Share sheet entry: stores the link in the App Group folder and closes.
 final class ShareViewController: UIViewController {
@@ -67,6 +68,8 @@ final class ShareViewController: UIViewController {
             sealSeed: Int32.random(in: 0..<10_000))
         do {
             try Inbox.write(item)
+            // The widget also reads the Inbox, so it can show the link before the app has imported it.
+            WidgetCenter.shared.reloadAllTimelines()
             show("Saved", symbol: "checkmark.circle.fill")
             finish(after: 0.9, cancelled: false)
         } catch {

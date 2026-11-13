@@ -130,8 +130,8 @@ final class FinishRulesTests: XCTestCase {
 // MARK: - Kind detection
 
 final class KindDetectorTests: XCTestCase {
-    private func kind(_ string: String, recipe: Bool = false) -> CardKind {
-        KindDetector.detect(url: URL(string: string)!, isRecipePage: recipe)
+    private func kind(_ string: String) -> CardKind {
+        KindDetector.detect(url: URL(string: string)!)
     }
 
     func testHostRules() {
@@ -140,13 +140,12 @@ final class KindDetectorTests: XCTestCase {
         XCTAssertEqual(kind("https://open.spotify.com/episode/123"), .podcast)
         XCTAssertEqual(kind("https://podcasts.apple.com/us/podcast/x/id1"), .podcast)
         XCTAssertEqual(kind("https://x.com/someone/status/1"), .tweet)
-        XCTAssertEqual(kind("https://www.amazon.co.uk/dp/B000"), .product)
-        XCTAssertEqual(kind("https://www.yelp.com/biz/place"), .place)
     }
 
-    func testRecipePageBeatsArticleButNotHostRules() {
-        XCTAssertEqual(kind("https://example.com/focaccia", recipe: true), .recipe)
-        XCTAssertEqual(kind("https://www.youtube.com/watch?v=abc", recipe: true), .video)
+    func testRecipeShoppingAndPlaceLinksAreJustArticles() {
+        XCTAssertEqual(kind("https://www.amazon.co.uk/dp/B000"), .article)
+        XCTAssertEqual(kind("https://www.yelp.com/biz/place"), .article)
+        XCTAssertEqual(kind("https://www.bbcgoodfood.com/recipes/easy-focaccia"), .article)
     }
 
     func testDefaultIsArticle() {
@@ -168,12 +167,11 @@ final class PageParserTests: XCTestCase {
     </head><body><p>Short page.</p></body></html>
     """
 
-    func testReadsTitleSiteImageAndRecipe() {
+    func testReadsTitleSiteImageAndDuration() {
         let info = PageParser.parse(html: html, base: URL(string: "https://example.com/a/b")!)
         XCTAssertEqual(info.title, "Focaccia & friends")
         XCTAssertEqual(info.siteName, "Food Blog")
         XCTAssertEqual(info.imageURL?.absoluteString, "https://example.com/img/focaccia.jpg")
-        XCTAssertTrue(info.isRecipe)
         XCTAssertEqual(info.durationMinutes, 63)
         XCTAssertNil(info.readMinutes)
     }
@@ -182,7 +180,6 @@ final class PageParserTests: XCTestCase {
         let info = PageParser.parse(html: "<html><head><title> Plain </title></head></html>",
                                     base: URL(string: "https://example.com")!)
         XCTAssertEqual(info.title, "Plain")
-        XCTAssertFalse(info.isRecipe)
     }
 
     func testReadMinutesFromWordCount() {
