@@ -1,0 +1,57 @@
+PressedTests/PressedTests.swift
+  s_d959039120c485::t_e7c0e3afe19376 133-134,145-148,170
+Pressed/App/PromoSamples.swift
+  s_e909e9e61a7f16::t_da8dbb02b54784 62-63
+  s_e909e9e61a7f16::t_767b813ed52e4a 1-55,58-61,67-101
+  s_e909e9e61a7f16::t_b2e817c27079e8 56-57,64-66
+PressedTests/CardFlowTests.swift
+  s_e909e9e61a7f16::t_38de2d4743bc78 1-29,31-626,628-648,650-769
+  s_e909e9e61a7f16::t_4de5e07b4bbd84 30,627,649
+PressedWidget/PressedWidget.swift
+  s_e909e9e61a7f16::t_55207d63729277 28,35,52-77
+Pressed/App/UITestSupport.swift
+  s_e909e9e61a7f16::t_44bd4ad9fd7833 10,16-19,50-51
+project.yml
+  s_e909e9e61a7f16::t_ae0ad443776bec 42-43,87-88,120-121
+  s_e909e9e61a7f16::t_7dac5020e37cd6 18,69,100,128
+  s_e909e9e61a7f16::t_6e724c80856fa7 47
+PressedWidget/Info.plist
+  s_e909e9e61a7f16::t_ae0ad443776bec 20,22
+PressedShare/ShareViewController.swift
+  s_e909e9e61a7f16::t_55207d63729277 3,71-72
+PressedUITests/PressedUITestCase.swift
+  s_e909e9e61a7f16::t_38de2d4743bc78 1-11,13-187
+  s_e909e9e61a7f16::t_382e7847764c4a 12
+PressedUITests/CardTypesUITests.swift
+  s_d959039120c485::t_b0968542721413 1-74
+PressedUITests/PressFlowUITests.swift
+  s_d959039120c485::t_f6f3cbd04b3c5b 1-89
+PressedUITests/SaveLinkUITests.swift
+  s_d959039120c485::t_3d527d33a48e8a 1-155
+PressedUITests/TonightsStackUITests.swift
+  s_d959039120c485::t_d9a0c8a8505030 1-100
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "06be2ade0a5c367cdd0fe4423629bf1287c332ce",
+  "prompts": {},
+  "sessions": {
+    "s_d959039120c485": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "03cb2094-c1ed-4e76-8046-06e30b42da25",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Dian Maisara <dian.maisara@foodpanda.com>"
+    },
+    "s_e909e9e61a7f16": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "b93f182a-8b46-4186-88ec-31c4200410f4",
+        "model": "claude-sonnet-5-5"
+      },
+      "human_author": "Dian Maisara <dian.maisara@foodpanda.com>"
+    }
+  }
+}
