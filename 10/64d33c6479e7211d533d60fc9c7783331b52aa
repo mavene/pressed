@@ -1,0 +1,19 @@
+README.md
+  s_1ed7685232cb40::t_578644e35ca645 1-39
+---
+{
+  "schema_version": "authorship/3.0.0",
+  "git_ai_version": "1.7.5",
+  "base_commit_sha": "1064d33c6479e7211d533d60fc9c7783331b52aa",
+  "prompts": {},
+  "sessions": {
+    "s_1ed7685232cb40": {
+      "agent_id": {
+        "tool": "claude",
+        "id": "658f17bf-5fc8-4da3-88e4-44ea9fb4e0b8",
+        "model": "unknown"
+      },
+      "human_author": "Dian Maisara <dian.maisara@foodpanda.com>"
+    }
+  }
+}
