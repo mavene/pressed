@@ -30,11 +30,15 @@ targets:
     dependencies:
       - target: PressedShare
       - target: PressedWidget
+      - target: PressedFocusMonitor
+      - target: PressedShieldConfig
+      - target: PressedShieldAction
     entitlements:
       path: Pressed/Pressed.entitlements
       properties:
         com.apple.security.application-groups:
-          - $(APP_GROUP_ID)
+          - $(APP_GROUP_ID
+        com.apple.developer.family-controls: true
     info:
       path: Pressed/Info.plist
       properties:
@@ -126,6 +130,83 @@ targets:
       base:
         PRODUCT_BUNDLE_IDENTIFIER: $(BUNDLE_ID_BASE).widget
         TARGETED_DEVICE_FAMILY: "1"
+
+  PressedFocusMonitor:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: PressedFocusMonitor
+      - path: Shared/AppGroup.swift
+      - path: Shared/FocusRules.swift
+      - path: Shared/FocusStore.swift
+      - path: Shared/FocusEngine.swift
+    entitlements:
+      path: PressedFocusMonitor/PressedFocusMonitor.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - $(APP_GROUP_ID)
+        com.apple.developer.family-controls: true
+    info:
+      path: PressedFocusMonitor/Info.plist
+      properties:
+        CFBundleDisplayName: Pressed
+        PressedAppGroup: $(APP_GROUP_ID)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.deviceactivity.monitor-extension
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).FocusMonitor
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(BUNDLE_ID_BASE).focusmonitor
+
+  PressedShieldConfig:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: PressedShieldConfig
+    entitlements:
+      path: PressedShieldConfig/PressedShieldConfig.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - $(APP_GROUP_ID)
+        com.apple.developer.family-controls: true
+    info:
+      path: PressedShieldConfig/Info.plist
+      properties:
+        CFBundleDisplayName: Pressed
+        PressedAppGroup: $(APP_GROUP_ID)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.ManagedSettingsUI.shield-configuration-service
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShieldConfigurationExtension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(BUNDLE_ID_BASE).shieldconfig
+
+  PressedShieldAction:
+    type: app-extension
+    platform: iOS
+    sources:
+      - path: PressedShieldAction
+      - path: Shared/AppGroup.swift
+      - path: Shared/FocusRules.swift
+      - path: Shared/FocusStore.swift
+      - path: Shared/FocusEngine.swift
+    entitlements:
+      path: PressedShieldAction/PressedShieldAction.entitlements
+      properties:
+        com.apple.security.application-groups:
+          - $(APP_GROUP_ID)
+        com.apple.developer.family-controls: true
+    info:
+      path: PressedShieldAction/Info.plist
+      properties:
+        CFBundleDisplayName: Pressed
+        PressedAppGroup: $(APP_GROUP_ID)
+        NSExtension:
+          NSExtensionPointIdentifier: com.apple.ManagedSettings.shield-action-service
+          NSExtensionPrincipalClass: $(PRODUCT_MODULE_NAME).ShieldActionExtension
+    settings:
+      base:
+        PRODUCT_BUNDLE_IDENTIFIER: $(BUNDLE_ID_BASE).shieldaction
 
   PressedTests:
     type: bundle.unit-test

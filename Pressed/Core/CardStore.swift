@@ -170,6 +170,7 @@ final class CardStore {
             rescued: card.rescuedAt != nil
         ).rawValue
         save()
+        FocusController.cardPressed(now: now)
         return card.record
     }
 

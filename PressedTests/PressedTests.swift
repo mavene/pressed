@@ -383,3 +383,125 @@ final class FlickPhysicsTests: XCTestCase {
         XCTAssertGreaterThan(FlickMath.minimumThrowSpeed(.lob), FlickMath.minimumThrowSpeed(.classic))
     }
 }
+
+final class FocusRulesTests: XCTestCase {
+    private let calendar = makeCalendar()
+
+    private func locked(now: Date,
+                        enabled: Bool = true,
+                        hasSelection: Bool = true,
+                        lastPressedDay: String? = nil,
+                        hasPending: Bool = true,
+                        bypassUntil: Date? = nil) -> Bool {
+        FocusRules.shouldBeLocked(
+            now: now, enabled: enabled, hasSelection: hasSelection, lockHour: 20, lockMinute: 0,
+            lastPressedDay: lastPressedDay, hasPending: hasPending, bypassUntil: bypassUntil, calendar: calendar)
+    }
+
+    func testOpenBeforeLockTime() {
+        XCTAssertFalse(locked(now: date(2026, 11, 10, 19, 59)))
+    }
+
+    func testLockedFromLockTimeUntilPress() {
+        XCTAssertTrue(locked(now: date(2026, 11, 10, 20, 0)))
+        XCTAssertTrue(locked(now: date(2026, 11, 10, 23, 45)))
+    }
+
+    func testPressTodayUnlocks() {
+        let today = FocusRules.dayKey(date(2026, 11, 10), calendar: calendar)
+        XCTAssertFalse(locked(now: date(2026, 11, 10, 21), lastPressedDay: today))
+    }
+
+    func testYesterdaysPressDoesNotCountToday() {
+        let yesterday = FocusRules.dayKey(date(2026, 11, 9), calendar: calendar)
+        XCTAssertTrue(locked(now: date(2026, 11, 10, 21), lastPressedDay: yesterday))
+    }
+
+    func testEmptyStackNeverLocks() {
+        XCTAssertFalse(locked(now: date(2026, 11, 10, 21), hasPending: false))
+    }
+
+    func testDisabledOrNothingChosenNeverLocks() {
+        XCTAssertFalse(locked(now: date(2026, 11, 10, 21), enabled: false))
+        XCTAssertFalse(locked(now: date(2026, 11, 10, 21), hasSelection: false))
+    }
+
+    func testNotNowBypassHoldsThenExpires() {
+        let now = date(2026, 11, 10, 21, 0)
+        XCTAssertFalse(locked(now: now, bypassUntil: date(2026, 11, 10, 21, 15)))
+        XCTAssertTrue(locked(now: now, bypassUntil: date(2026, 11, 10, 20, 59)))
+    }
+
+    func testLockTimeIsClampedBeforeMidnight() {
+        let late = FocusRules.shouldBeLocked(
+            now: date(2026, 11, 10, 23, 31), enabled: true, hasSelection: true, lockHour: 23, lockMinute: 55,
+            lastPressedDay: nil, hasPending: true, bypassUntil: nil, calendar: calendar)
+        XCTAssertTrue(late)
+    }
+
+    func testLongLinksGetALongerGraceWindowThanTheRest() {
+        XCTAssertEqual(FocusRules.graceMinutes(longLink: true), 60)
+        XCTAssertEqual(FocusRules.graceMinutes(longLink: false), FocusRules.bypassMinutes)
+        XCTAssertEqual(CardKind.allCases.filter(\.isLongForm), [.video, .podcast])
+    }
+
+    func testNoGraceWindowIsShorterThanDeviceActivityAllows() {
+        for long in [true, false] {
+            XCTAssertGreaterThanOrEqual(FocusRules.graceMinutes(longLink: long), 15)
+        }
+    }
+
+    func testGraceWindowHoldsThenLocksAgainIfNothingWasPressed() {
+        let opened = date(2026, 11, 10, 20, 0)
+        let until = opened.addingTimeInterval(TimeInterval(FocusRules.graceMinutes(longLink: true) * 60))
+        XCTAssertFalse(locked(now: date(2026, 11, 10, 20, 59), bypassUntil: until))
+        XCTAssertTrue(locked(now: date(2026, 11, 10, 21, 0), bypassUntil: until))
+    }
+
+    func testPressInsideGraceWindowKeepsTheDayUnlocked() {
+        let today = FocusRules.dayKey(date(2026, 11, 10), calendar: calendar)
+        XCTAssertFalse(locked(now: date(2026, 11, 10, 22, 30), lastPressedDay: today, bypassUntil: nil))
+    }
+
+    func testBypassWindowEndsExactlyAtItsDeadline() {
+        let until = date(2026, 11, 10, 21, 0)
+        XCTAssertTrue(FocusRules.isBypassed(until: until, now: date(2026, 11, 10, 20, 59)))
+        XCTAssertFalse(FocusRules.isBypassed(until: until, now: until))
+        XCTAssertFalse(FocusRules.isBypassed(until: nil, now: until))
+    }
+
+    func testDayKeyUsesCalendarDay() {
+        XCTAssertEqual(FocusRules.dayKey(date(2026, 1, 5), calendar: calendar), "2026-01-05")
+    }
+}
+
+@MainActor
+final class ReaderRulesTests: XCTestCase {
+    func testNeedsALoadedPageAndEnoughTime() {
+        XCTAssertTrue(ReaderCoordinator.countsAsRead(loaded: true, seconds: 5))
+        XCTAssertTrue(ReaderCoordinator.countsAsRead(loaded: true, seconds: 120))
+        XCTAssertFalse(ReaderCoordinator.countsAsRead(loaded: true, seconds: 4.9))
+        XCTAssertFalse(ReaderCoordinator.countsAsRead(loaded: false, seconds: 120))
+    }
+
+    func testComingBackFromAHandoffShowsThePressSheetOnlyAfterRealTimeAway() {
+        let minimum = ReaderCoordinator.minimumHandoffSeconds
+        XCTAssertTrue(ReaderCoordinator.returnedFromHandoff(handoffAllowed: true, awaySeconds: minimum))
+        XCTAssertFalse(ReaderCoordinator.returnedFromHandoff(handoffAllowed: true, awaySeconds: minimum - 0.1))
+        // Ordinary links never take over the return trip.
+        XCTAssertFalse(ReaderCoordinator.returnedFromHandoff(handoffAllowed: false, awaySeconds: 600))
+    }
+
+    func testAHandoffToAnotherAppCountsWithoutALoadedPage() {
+        XCTAssertTrue(ReaderCoordinator.countsAsRead(loaded: false, seconds: 600, handoffAllowed: true))
+        // Still not a read if the user came straight back.
+        let minimum = ReaderCoordinator.minimumHandoffSeconds
+        XCTAssertFalse(ReaderCoordinator.countsAsRead(loaded: false, seconds: minimum - 0.1, handoffAllowed: true))
+        XCTAssertTrue(ReaderCoordinator.countsAsRead(loaded: false, seconds: minimum, handoffAllowed: true))
+        // A page that did load keeps the ordinary 5 seconds, unless it handed off and the handoff minimum is lower.
+        XCTAssertTrue(ReaderCoordinator.countsAsRead(loaded: true, seconds: 5, handoffAllowed: true))
+        XCTAssertFalse(ReaderCoordinator.countsAsRead(loaded: true, seconds: 0, handoffAllowed: false))
+        let handoffLoaded = min(ReaderCoordinator.minimumReadSeconds, minimum)
+        XCTAssertTrue(ReaderCoordinator.countsAsRead(loaded: true, seconds: handoffLoaded, handoffAllowed: true))
+    }
+}

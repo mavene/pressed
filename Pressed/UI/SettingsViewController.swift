@@ -3,7 +3,7 @@ import UIKit
 /// Shelf life, the evening nudge and a few helpers.
 final class SettingsViewController: UIViewController, UITableViewDataSource, UITableViewDelegate {
     private enum Section: Int, CaseIterable {
-        case shelfLife, nudge, help
+        case shelfLife, nudge, focus, help
     }
 
     private let tableView = UITableView(frame: .zero, style: .insetGrouped)
@@ -56,6 +56,13 @@ final class SettingsViewController: UIViewController, UITableViewDataSource, UIT
         switch Section(rawValue: section) {
         case .shelfLife: return 1
         case .nudge: return AppSettings.nudgeEnabled ? 2 : 1
+        case .focus:
+            guard FocusStore.enabled else { return 1 }
+            #if DEBUG
+            return 5
+            #else
+            return 3
+            #endif
         case .help:
             #if DEBUG
             return 6
@@ -70,6 +77,7 @@ final class SettingsViewController: UIViewController, UITableViewDataSource, UIT
         switch Section(rawValue: section) {
         case .shelfLife: return "Shelf life"
         case .nudge: return "Evening nudge"
+        case .focus: return "Focus mode"
         case .help: return "Help"
         case .none: return nil
         }
@@ -79,6 +87,7 @@ final class SettingsViewController: UIViewController, UITableViewDataSource, UIT
         switch Section(rawValue: section) {
         case .shelfLife: return "How long a new link lasts before it crumbles. Links already on your Pile keep their dates."
         case .nudge: return "One notification a day, only when your pile has something waiting."
+        case .focus: return FocusController.statusLine
         case .help:
             let version = Bundle.main.object(forInfoDictionaryKey: "CFBundleShortVersionString") as? String ?? "1.0"
             return "Pressed \(version). Everything stays on this iPhone."
@@ -148,6 +157,67 @@ final class SettingsViewController: UIViewController, UITableViewDataSource, UIT
             picker.sizeToFit()
             return cell
 
+        case (.focus, 0):
+            content.text = "Lock apps until I press"
+            cell.contentConfiguration = content
+            let toggle = UISwitch()
+            toggle.isOn = FocusStore.enabled
+            toggle.onTintColor = Theme.ink
+            toggle.addAction(UIAction { [weak self, weak toggle] _ in
+                guard let toggle else { return }
+                self?.setFocus(enabled: toggle.isOn)
+            }, for: .valueChanged)
+            cell.accessoryView = toggle
+            return cell
+
+        case (.focus, 1):
+            content.text = "Locks at"
+            cell.contentConfiguration = content
+            let picker = UIDatePicker()
+            picker.datePickerMode = .time
+            picker.preferredDatePickerStyle = .compact
+            var parts = DateComponents()
+            parts.hour = FocusStore.lockHour
+            parts.minute = FocusStore.lockMinute
+            picker.date = Calendar.current.date(from: parts) ?? Date()
+            // The lock window needs at least 15 minutes before midnight.
+            picker.maximumDate = Calendar.current.date(bySettingHour: 23, minute: 30, second: 0, of: Date())
+            picker.addAction(UIAction { [weak self, weak picker] _ in
+                guard let picker else { return }
+                let chosen = Calendar.current.dateComponents([.hour, .minute], from: picker.date)
+                FocusStore.lockHour = chosen.hour ?? 20
+                FocusStore.lockMinute = chosen.minute ?? 0
+                FocusController.sync()
+                self?.refreshFocusFooter()
+            }, for: .valueChanged)
+            cell.accessoryView = picker
+            picker.sizeToFit()
+            return cell
+
+        case (.focus, 2):
+            content.text = "Apps to lock"
+            content.secondaryText = FocusController.selectionSummary()
+            content.prefersSideBySideTextAndSecondaryText = true
+            content.secondaryTextProperties.color = Theme.inkQuiet
+            cell.contentConfiguration = content
+            cell.accessoryType = .disclosureIndicator
+            cell.selectionStyle = .default
+            return cell
+
+        case (.focus, 3):
+            content.text = "Lock now (debug build only)"
+            content.textProperties.color = Theme.inkQuiet
+            cell.contentConfiguration = content
+            cell.selectionStyle = .default
+            return cell
+
+        case (.focus, _):
+            content.text = "Unlock now (debug build only)"
+            content.textProperties.color = Theme.inkQuiet
+            cell.contentConfiguration = content
+            cell.selectionStyle = .default
+            return cell
+
         case (.help, 0):
             content.text = "How to save a link"
             cell.contentConfiguration = content
@@ -198,6 +268,10 @@ final class SettingsViewController: UIViewController, UITableViewDataSource, UIT
 
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         tableView.deselectRow(at: indexPath, animated: true)
+        if Section(rawValue: indexPath.section) == .focus {
+            didSelectFocusRow(indexPath.row)
+            return
+        }
         guard Section(rawValue: indexPath.section) == .help else { return }
         switch indexPath.row {
         case 0:
@@ -262,6 +336,50 @@ final class SettingsViewController: UIViewController, UITableViewDataSource, UIT
         present(FarewellViewController(records: records), animated: true)
     }
     #endif
+
+    // MARK: Focus mode
+
+    private func setFocus(enabled: Bool) {
+        guard enabled else {
+            FocusController.disable()
+            tableView.reloadSections([Section.focus.rawValue], with: .automatic)
+            return
+        }
+        FocusSetup.begin(from: self) { [weak self] _ in
+            self?.tableView.reloadSections([Section.focus.rawValue], with: .automatic)
+        }
+    }
+
+    private func didSelectFocusRow(_ row: Int) {
+        switch row {
+        case 2:
+            FocusSetup.chooseApps(from: self) { [weak self] chosen in
+                if !chosen && FocusStore.selection == nil { FocusController.disable() }
+                FocusController.sync()
+                self?.tableView.reloadSections([Section.focus.rawValue], with: .automatic)
+            }
+        case 3:
+            #if DEBUG
+            FocusController.debugLock()
+            Toast.show("Locked", in: view)
+            refreshFocusFooter()
+            #endif
+        case 4:
+            #if DEBUG
+            FocusController.debugUnlock()
+            Toast.show("Unlocked for 15 minutes", in: view)
+            refreshFocusFooter()
+            #endif
+        default:
+            break
+        }
+    }
+
+    private func refreshFocusFooter() {
+        tableView.footerView(forSection: Section.focus.rawValue)?.textLabel?.text = FocusController.statusLine
+        tableView.beginUpdates()
+        tableView.endUpdates()
+    }
 
     // MARK: Nudge switch
 

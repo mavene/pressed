@@ -20,6 +20,7 @@ final class SceneDelegate: UIResponder, UIWindowSceneDelegate {
 
         AppRouter.shared.attach(root)
         NudgeCoordinator.shared.start()
+        FocusCoordinator.shared.start()
         #if DEBUG
         DebugScreenshots.run(root: root)
         #endif
